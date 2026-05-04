@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>外籍看護每日工作表 / Jadwal Harian Pengasuh</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Sans:wght@400;500;700&display=swap');
+
+  :root {
+    --sunrise: #e8813a;
+    --morning: #f5c842;
+    --noon: #4caf7d;
+    --afternoon: #3a8fd1;
+    --evening: #5c6bc0;
+    --bedtime: #7b57a6;
+    --night: #2c3a5e;
+    --warning: #d94f3d;
+    --bg: #f4f6f9;
+    --card: #fff;
+    --text: #222;
+    --sub: #666;
+    --border: #e0e4ea;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans TC', 'Noto Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 12px;
+    max-width: 620px;
+    margin: 0 auto;
+    font-size: 15px;
+  }
+
+  header {
+    background: linear-gradient(135deg, #2c3a5e 0%, #5c6bc0 100%);
+    color: #fff;
+    border-radius: 16px;
+    padding: 20px 18px 16px;
+    margin-bottom: 14px;
+    text-align: center;
+  }
+
+  header h1 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    line-height: 1.6;
+  }
+
+  header p {
+    font-size: 0.8rem;
+    opacity: 0.75;
+    margin-top: 4px;
+  }
+
+  .block {
+    background: var(--card);
+    border-radius: 14px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.07);
+    border: 1px solid var(--border);
+  }
+
+  .block-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+  }
+
+  .block-header .emoji { font-size: 1.3rem; }
+
+  .block-header .time-zh { flex: 1; line-height: 1.4; }
+  .block-header .time-id { font-size: 0.75rem; opacity: 0.88; font-weight: 400; }
+
+  .task-list { padding: 10px 14px 12px; }
+
+  .task-item {
+    display: flex;
+    gap: 10px;
+    padding: 7px 0;
+    border-bottom: 1px solid var(--border);
+    align-items: flex-start;
+  }
+
+  .task-item:last-child { border-bottom: none; }
+
+  .task-num {
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #fff;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .task-text { flex: 1; }
+  .zh { font-size: 0.9rem; font-weight: 500; line-height: 1.5; }
+  .id { font-size: 0.78rem; color: var(--sub); line-height: 1.4; margin-top: 1px; }
+
+  /* Color themes */
+  .c-sunrise .block-header { background: var(--sunrise); }
+  .c-sunrise .task-num { background: var(--sunrise); }
+
+  .c-morning .block-header { background: #c9961e; }
+  .c-morning .task-num { background: #c9961e; }
+
+  .c-noon .block-header { background: var(--noon); }
+  .c-noon .task-num { background: var(--noon); }
+
+  .c-afternoon .block-header { background: var(--afternoon); }
+  .c-afternoon .task-num { background: var(--afternoon); }
+
+  .c-evening .block-header { background: var(--evening); }
+  .c-evening .task-num { background: var(--evening); }
+
+  .c-bedtime .block-header { background: var(--bedtime); }
+  .c-bedtime .task-num { background: var(--bedtime); }
+
+  .c-night .block-header { background: var(--night); }
+  .c-night .task-num { background: var(--night); }
+
+  .c-warning .block-header { background: var(--warning); }
+  .c-warning .task-num { background: var(--warning); }
+
+  /* Warning block special style */
+  .warning-note {
+    background: #fff5f4;
+    border-left: 3px solid var(--warning);
+    padding: 6px 10px;
+    margin: 4px 0;
+    border-radius: 0 6px 6px 0;
+  }
+
+  /* Contact section */
+  .contact-box {
+    background: #eef4ff;
+    border-radius: 10px;
+    padding: 10px 14px;
+    margin-top: 8px;
+  }
+
+  .contact-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    font-size: 0.88rem;
+  }
+
+  .contact-row .name { font-weight: 600; min-width: 80px; }
+  .contact-row .phone { color: var(--blue, #3a8fd1); font-weight: 700; font-size: 0.95rem; }
+
+  footer {
+    text-align: center;
+    font-size: 0.7rem;
+    color: #aaa;
+    padding: 8px 0 20px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🏠 外籍看護每日工作表<br>Jadwal Pekerjaan Harian Pengasuh</h1>
+  <p>中文 ／ Bahasa Indonesia</p>
+</header>
+
+<!-- 早上 -->
+<div class="block c-sunrise">
+  <div class="block-header">
+    <span class="emoji">🌅</span>
+    <div class="time-zh">
+      早上 06:30 – 09:00
+      <div class="time-id">Pagi</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">幫阿嬤起床</div>
+        <div class="id">Bangunkan nenek</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">換尿布（我媽會自己換）</div>
+        <div class="id">Ganti pampers (Ibuku bisa menggantinya sendiri)</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">洗臉</div>
+        <div class="id">Cuci muka</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">做早餐吃早餐（或喝安素加蛋）</div>
+        <div class="id">Siapkan sarapan dan makan sarapan (Atau minum Ensure dengan telur)</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">開鐵門</div>
+        <div class="id">Bukalah gerbang besi itu</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">6</div>
+      <div class="task-text">
+        <div class="zh">倒尿桶及清洗</div>
+        <div class="id">Mengosongkan dan membersihkan urinoir</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 上午 -->
+<div class="block c-morning">
+  <div class="block-header">
+    <span class="emoji">☀️</span>
+    <div class="time-zh">
+      上午 09:00 – 11:00
+      <div class="time-id">Pagi Menjelang Siang</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">陪阿嬤走一走</div>
+        <div class="id">Temani nenek berjalan</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">陪聊天</div>
+        <div class="id">Temani bicara</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">整理房間</div>
+        <div class="id">Rapikan kamar</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">洗衣服曬衣服</div>
+        <div class="id">Mencuci dan mengeringkan pakaian</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">喝杏仁果飲及喝水（如果還有）</div>
+        <div class="id">Catat setiap hari apakah nenek minum tablet enzim, susu almond, dan air</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 中午 -->
+<div class="block c-noon">
+  <div class="block-header">
+    <span class="emoji">🍱</span>
+    <div class="time-zh">
+      中午 11:00 – 13:00
+      <div class="time-id">Siang</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">準備午餐</div>
+        <div class="id">Siapkan makan siang</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">陪阿嬤吃午餐並不吃辣椒</div>
+        <div class="id">Aku makan siang bersama nenekku tapi tidak makan cabai</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">飯後稍微整理</div>
+        <div class="id">Rapikan sedikit setelah makan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 下午 -->
+<div class="block c-afternoon">
+  <div class="block-header">
+    <span class="emoji">🏠</span>
+    <div class="time-zh">
+      下午 13:00 – 16:30
+      <div class="time-id">Sore</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">陪阿嬤休息</div>
+        <div class="id">Temani nenek istirahat</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">家事（打掃）</div>
+        <div class="id">Pekerjaan rumah tangga (membersihkan)</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">準備晚餐</div>
+        <div class="id">Siapkan makan malam</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">倒垃圾 PM 15:30</div>
+        <div class="id">Membuang sampah PM 15:30</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">若前一晚夜間有多次起床照顧，這段時間請安排自我休息</div>
+        <div class="id">Jika Anda bangun beberapa kali pada malam sebelumnya untuk merawat seseorang, luangkan waktu untuk beristirahat selama periode ini.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 晚上 -->
+<div class="block c-evening">
+  <div class="block-header">
+    <span class="emoji">🌙</span>
+    <div class="time-zh">
+      晚上 16:30 – 20:30
+      <div class="time-id">Malam</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">吃晚餐</div>
+        <div class="id">Makan malam</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">洗澡協助</div>
+        <div class="id">Membantu nenek mandi</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">換尿布（我媽會自己換）</div>
+        <div class="id">Ganti pampers (Ibuku bisa menggantinya sendiri)</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">關鐵門</div>
+        <div class="id">Tutup gerbang besi itu</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">收衣服</div>
+        <div class="id">Kumpulkan pakaian</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">6</div>
+      <div class="task-text">
+        <div class="zh">看電視</div>
+        <div class="id">Menonton televisi</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">7</div>
+      <div class="task-text">
+        <div class="zh">吃水果及喝水</div>
+        <div class="id">Makan buah dan minum air</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 睡前 -->
+<div class="block c-bedtime">
+  <div class="block-header">
+    <span class="emoji">😴</span>
+    <div class="time-zh">
+      睡前 20:30 – 21:30
+      <div class="time-id">Sebelum Tidur</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">準備睡覺</div>
+        <div class="id">Persiapan tidur</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">檢查尿布</div>
+        <div class="id">Periksa pampers</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">關燈休息</div>
+        <div class="id">Matikan lampu dan istirahat</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">確認門鎖、安全與求救鈴可正常使用</div>
+        <div class="id">Pastikan pintu terkunci, aman, dan bel darurat dapat digunakan dengan baik</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">夏天阿嬤房間開冷氣及早上關冷氣</div>
+        <div class="id">Nenek menyalakan AC di kamarnya saat musim panas dan mematikannya di pagi hari</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">6</div>
+      <div class="task-text">
+        <div class="zh">吃整腸酵素 2 顆</div>
+        <div class="id">Minum 2 tablet enzim pencernaan</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 夜間 -->
+<div class="block c-night">
+  <div class="block-header">
+    <span class="emoji">🌃</span>
+    <div class="time-zh">
+      夜間 21:30 – 06:30
+      <div class="time-id">Pada Malam Hari</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">盥洗／洗澡／洗頭</div>
+        <div class="id">Mencuci / mandi / keramas</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">夜間以休息睡覺為主</div>
+        <div class="id">Pada malam hari, utamanya istirahat dan tidur</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">若阿嬤半夜醒來、開燈、下床、找人、按求救鈴，再起來查看與協助</div>
+        <div class="id">Jika nenek bangun tengah malam, menyalakan lampu, turun dari tempat tidur, mencari orang, atau menekan bel darurat, barulah bangun untuk memeriksa dan membantu</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">若監視器有異常訊息，請起來查看</div>
+        <div class="id">Jika ada notifikasi tidak biasa dari kamera, tolong periksa</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">若阿嬤有跌倒風險，請立即協助並通知家人</div>
+        <div class="id">Jika ada risiko nenek jatuh, segera bantu dan beri tahu keluarga</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">6</div>
+      <div class="task-text">
+        <div class="zh">若阿嬤只是短暫醒來但安全無事，可安撫後再回去休息</div>
+        <div class="id">Jika Nenek hanya terbangun sebentar tetapi dalam keadaan sehat dan selamat, tenangkan dia sebelum menyuruhnya kembali tidur</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">7</div>
+      <div class="task-text">
+        <div class="zh">不需要整晚都保持醒著</div>
+        <div class="id">Dia tidak perlu begadang sepanjang malam</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 工作提醒 -->
+<div class="block c-warning">
+  <div class="block-header">
+    <span class="emoji">⚠️</span>
+    <div class="time-zh">
+      工作提醒
+      <div class="time-id">Perhatikan</div>
+    </div>
+  </div>
+  <div class="task-list">
+    <div class="task-item">
+      <div class="task-num">1</div>
+      <div class="task-text">
+        <div class="zh">與阿嬤吃飯要用筷子不能用手拿來吃</div>
+        <div class="id">Gunakan sumpit saat makan bersama Nenek, jangan pernah menggunakan tangan</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">2</div>
+      <div class="task-text">
+        <div class="zh">阿嬤走路要扶</div>
+        <div class="id">Bantu Nenek berjalan</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">3</div>
+      <div class="task-text">
+        <div class="zh">阿嬤若蹲下再站起來，頭會暈走路很容易跌倒要注意，不要讓他去菜園</div>
+        <div class="id">Jika Nenek berjongkok lalu berdiri, ia akan merasa pusing dan mudah jatuh. Berhati-hatilah agar tidak membiarkannya pergi ke kebun sayur</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">4</div>
+      <div class="task-text">
+        <div class="zh">若阿嬤跌倒，到餐廳拿木椅給阿嬤扶起來</div>
+        <div class="id">Jika Nenek jatuh, ambil kursi kayu dari ruang makan untuk membantunya berdiri</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">5</div>
+      <div class="task-text">
+        <div class="zh">半夜監視器若有訊息要查看</div>
+        <div class="id">Periksa kamera keamanan untuk melihat pesan apa pun di malam hari</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">6</div>
+      <div class="task-text">
+        <div class="zh">救鈴聲響起需前往房間查看</div>
+        <div class="id">Pergi ke kamarnya jika tombol panggilan darurat berbunyi</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">7</div>
+      <div class="task-text">
+        <div class="zh">注意阿嬤是否每天大便，要記起來</div>
+        <div class="id">Ingat apakah Nenek buang air besar setiap hari</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">8</div>
+      <div class="task-text">
+        <div class="zh">阿嬤房間尿桶要拿去倒及清洗</div>
+        <div class="id">Pispot nenek perlu dikosongkan dan dicuci agar tidak berbau</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">9</div>
+      <div class="task-text">
+        <div class="zh">身體不舒服要看醫生告訴雇主帶去就醫</div>
+        <div class="id">Jika Anda merasa tidak enak badan dan perlu memeriksakan diri ke dokter, beritahu atasan Anda</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">10</div>
+      <div class="task-text">
+        <div class="zh">每天需輸入健康管理系統網頁</div>
+        <div class="id">Input harian diperlukan ke halaman web sistem manajemen kesehatan</div>
+      </div>
+    </div>
+    <div class="task-item">
+      <div class="task-num">11</div>
+      <div class="task-text">
+        <div class="zh">有問題請告訴家人：</div>
+        <div class="id">Beri tahu keluarga jika Anda mengalami masalah:</div>
+        <div class="contact-box" style="margin-top:8px;">
+          <div class="contact-row">
+            <span class="name">📞 呂明美</span>
+            <span class="phone">0934-025-788</span>
+          </div>
+          <div class="contact-row">
+            <span class="name">📞 呂憲政</span>
+            <span class="phone">0952-358-805</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  外籍看護每日工作表 ／ Jadwal Pekerjaan Harian Pengasuh &nbsp;｜&nbsp; 2026
+</footer>
+
+</body>
+</html>
