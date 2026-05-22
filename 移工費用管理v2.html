@@ -1000,15 +1000,13 @@ function autoSyncToSheet() {
     const year = new Date(tx.date).getFullYear();
     return year >= 2020 && year <= 2100;
   });
-  const payload = encodeURIComponent(JSON.stringify(validTxns));
-  const cbName = 'gasAutoSync_' + Date.now();
-  const url = GAS_URL + '?callback=' + cbName + '&data=' + payload;
-  const timer = setTimeout(() => { delete window[cbName]; }, 15000);
-  window[cbName] = function() { clearTimeout(timer); delete window[cbName]; };
-  const script = document.createElement('script');
-  script.src = url;
-  script.onerror = function() { clearTimeout(timer); delete window[cbName]; };
-  document.head.appendChild(script);
+
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(validTxns)
+  }).catch(() => {});
 }
 
 // ── SYNC TO GOOGLE SHEET ─────────────────
@@ -1017,38 +1015,20 @@ function syncToSheet() {
   btn.textContent = '⏳ 同步中...';
   btn.disabled = true;
 
-  // Filter valid data only
   const validTxns = txns.filter(tx => {
     if (!tx.date || !tx.amount || tx.amount <= 0) return false;
     const year = new Date(tx.date).getFullYear();
     return year >= 2020 && year <= 2100;
   });
 
-  // Use XMLHttpRequest - most compatible with iOS Safari local files
-  const xhr = new XMLHttpRequest();
-  const payload = encodeURIComponent(JSON.stringify(validTxns));
-  const url = GAS_URL + '?data=' + payload;
-
-  xhr.open('GET', url, true);
-  xhr.timeout = 15000;
-
-  xhr.onload = function() { showSyncSuccess(); };
-  xhr.onerror = function() { showSyncSuccess(); };
-  xhr.ontimeout = function() { showSyncSuccess(); };
-
-  try {
-    xhr.send();
-  } catch(e) {
-    // fallback to script tag
-    const cbName = 'gasSync_' + Date.now();
-    const cbUrl = GAS_URL + '?callback=' + cbName + '&data=' + payload;
-    const timer = setTimeout(() => { delete window[cbName]; showSyncSuccess(); }, 10000);
-    window[cbName] = function() { clearTimeout(timer); delete window[cbName]; showSyncSuccess(); };
-    const script = document.createElement('script');
-    script.src = cbUrl;
-    script.onerror = function() { clearTimeout(timer); delete window[cbName]; showSyncSuccess(); };
-    document.head.appendChild(script);
-  }
+  fetch(GAS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(validTxns)
+  })
+  .then(() => showSyncSuccess())
+  .catch(() => showSyncSuccess());
 }
 
 function showSyncSuccess() {
