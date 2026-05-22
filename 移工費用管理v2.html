@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>移工照顧費用管理</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=DM+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f5f7fa;
+  --card: #ffffff;
+  --border: #e2e8f0;
+  --accent: #3b82f6;
+  --accent-light: #eff6ff;
+  --green: #10b981;
+  --green-light: #ecfdf5;
+  --red: #ef4444;
+  --red-light: #fef2f2;
+  --orange: #f59e0b;
+  --orange-light: #fffbeb;
+  --purple: #8b5cf6;
+  --purple-light: #f5f3ff;
+  --gray-light: #f8fafc;
+  --text: #1e293b;
+  --sub: #64748b;
+  --muted: #94a3b8;
+  --radius: 14px;
+  --shadow: 0 1px 8px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  background: var(--bg);
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
+
+/* ── HEADER ─────────────────────────────── */
+header {
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  color: white;
+  padding: 18px 16px 16px;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+  box-shadow: 0 2px 12px rgba(59,130,246,0.3);
+}
+.header-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.header-title { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.02em; }
+.header-sub { font-size: 0.7rem; opacity: 0.8; margin-top: 2px; }
+.month-nav { display: flex; align-items: center; gap: 12px; }
+.month-btn {
+  background: rgba(255,255,255,0.2);
+  border: none;
+  color: white;
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+.month-btn:active { background: rgba(255,255,255,0.35); }
+.month-label { font-size: 1rem; font-weight: 600; min-width: 80px; text-align: center; font-family: 'DM Mono', monospace; }
+
+/* ── SUMMARY CARDS ──────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  padding: 14px 14px 0;
+}
+.sum-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.sum-card.wide { grid-column: 1 / -1; }
+.sum-label { font-size: 0.68rem; color: var(--sub); margin-bottom: 4px; font-weight: 500; }
+.sum-val {
+  font-size: 1.25rem;
+  font-weight: 700;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+}
+.sum-val.green { color: var(--green); }
+.sum-val.red { color: var(--red); }
+.sum-val.blue { color: var(--accent); }
+.sum-val.purple { color: var(--purple); }
+.sum-count { font-size: 0.65rem; color: var(--muted); margin-top: 2px; font-family: 'DM Mono', monospace; }
+
+.balance-bar {
+  margin: 0 14px 0;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 14px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+.balance-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.balance-label { font-size: 0.75rem; color: var(--sub); font-weight: 500; }
+.balance-total { font-size: 1.5rem; font-weight: 700; color: var(--accent); font-family: 'DM Mono', monospace; }
+.balance-detail { display: flex; gap: 16px; }
+.balance-item { font-size: 0.7rem; color: var(--sub); }
+.balance-item span { color: var(--text); font-weight: 600; font-family: 'DM Mono', monospace; }
+
+.progress-wrap { margin: 0 14px 14px; }
+.progress-bar-bg {
+  background: #e2e8f0;
+  border-radius: 6px;
+  height: 8px;
+  overflow: hidden;
+}
+.progress-bar-fill {
+  background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+  height: 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+}
+.progress-text { display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--muted); margin-top: 4px; font-family: 'DM Mono', monospace; }
+
+/* ── CATEGORY CHIPS ─────────────────────── */
+.cat-strip { display: flex; gap: 6px; padding: 10px 14px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.cat-strip::-webkit-scrollbar { display: none; }
+.cat-chip {
+  flex-shrink: 0;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.cat-chip.active { border-color: currentColor; }
+
+.chip-all    { background:#f1f5f9; color:#475569; }
+.chip-all.active { background:#475569; color:white; }
+.chip-lv     { background:#eff6ff; color:#3b82f6; }
+.chip-lv.active { background:#3b82f6; color:white; }
+.chip-pub    { background:#ecfdf5; color:#10b981; }
+.chip-pub.active { background:#10b981; color:white; }
+.chip-etf    { background:#f5f3ff; color:#8b5cf6; }
+.chip-etf.active { background:#8b5cf6; color:white; }
+.chip-mth    { background:#fff7ed; color:#f59e0b; }
+.chip-mth.active { background:#f59e0b; color:white; }
+.chip-ql     { background:#fdf2f8; color:#ec4899; }
+.chip-ql.active { background:#ec4899; color:white; }
+.chip-none   { background:#f8fafc; color:#94a3b8; }
+.chip-none.active { background:#94a3b8; color:white; }
+
+/* ── ADD BUTTON ─────────────────────────── */
+.add-btn-wrap { padding: 0 14px 10px; }
+.add-btn {
+  width: 100%;
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius);
+  padding: 13px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(59,130,246,0.3);
+  transition: opacity 0.15s;
+}
+.add-btn:active { opacity: 0.85; }
+
+/* ── TRANSACTION LIST ───────────────────── */
+.list-wrap { padding: 0 14px; }
+.list-section-title {
+  font-size: 0.7rem;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 8px 0 6px;
+  font-family: 'DM Mono', monospace;
+}
+.tx-item {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 13px 14px;
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.tx-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  margin-top: 5px;
+  flex-shrink: 0;
+}
+.tx-main { flex: 1; min-width: 0; }
+.tx-desc { font-size: 0.88rem; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-meta { font-size: 0.68rem; color: var(--sub); margin-top: 2px; display: flex; gap: 8px; align-items: center; }
+.tx-cat-badge {
+  padding: 1px 7px;
+  border-radius: 10px;
+  font-size: 0.62rem;
+  font-weight: 600;
+}
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount { font-size: 0.95rem; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--text); }
+.tx-actions { display: flex; gap: 6px; margin-top: 4px; justify-content: flex-end; }
+.tx-btn {
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.65rem;
+  color: var(--sub);
+  cursor: pointer;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.15s;
+}
+.tx-btn.del { border-color: #fecaca; color: var(--red); }
+.tx-btn:active { opacity: 0.7; }
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+/* ── CATEGORY COLORS ────────────────────── */
+.dot-lv  { background: #3b82f6; }
+.dot-pub { background: #10b981; }
+.dot-etf { background: #8b5cf6; }
+.dot-mth { background: #f59e0b; }
+.dot-ql  { background: #ec4899; }
+.dot-none{ background: #cbd5e1; }
+
+.badge-lv  { background:#eff6ff; color:#3b82f6; }
+.badge-pub { background:#ecfdf5; color:#10b981; }
+.badge-etf { background:#f5f3ff; color:#8b5cf6; }
+.badge-mth { background:#fff7ed; color:#f59e0b; }
+.badge-ql  { background:#fdf2f8; color:#ec4899; }
+.badge-none{ background:#f1f5f9; color:#94a3b8; }
+
+/* ── MODAL ──────────────────────────────── */
+.modal-backdrop {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 500;
+  align-items: flex-end;
+  justify-content: center;
+}
+.modal-backdrop.open { display: flex; }
+
+.modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 20px 18px 36px;
+  width: 100%;
+  max-width: 520px;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp { from { transform: translateY(40px); opacity:0; } to { transform: translateY(0); opacity:1; } }
+
+.modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.modal-close {
+  background: var(--bg);
+  border: none;
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  font-size: 1rem;
+  cursor: pointer;
+  color: var(--sub);
+  display: flex; align-items: center; justify-content: center;
+}
+
+.form-group { margin-bottom: 14px; }
+.form-label { font-size: 0.75rem; font-weight: 600; color: var(--sub); margin-bottom: 5px; display: block; }
+.form-input {
+  width: 100%;
+  background: var(--gray-light);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 11px 12px;
+  font-size: 1rem;
+  font-family: 'Noto Sans TC', sans-serif;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s;
+  -webkit-appearance: none;
+}
+.form-input:focus { border-color: var(--accent); background: white; }
+
+.cat-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.cat-option {
+  padding: 10px 8px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  border: 2px solid transparent;
+  transition: all 0.15s;
+}
+.cat-option.selected { border-color: currentColor; transform: scale(0.97); }
+
+.co-lv  { background:#eff6ff; color:#3b82f6; }
+.co-pub { background:#ecfdf5; color:#10b981; }
+.co-etf { background:#f5f3ff; color:#8b5cf6; }
+.co-mth { background:#fff7ed; color:#f59e0b; }
+.co-ql  { background:#fdf2f8; color:#ec4899; }
+.co-none{ background:#f1f5f9; color:#94a3b8; }
+
+.form-btn-row { display: flex; gap: 10px; margin-top: 18px; }
+.form-btn {
+  flex: 1;
+  padding: 13px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.15s;
+}
+.form-btn:active { opacity: 0.8; }
+.btn-cancel { background: var(--bg); color: var(--sub); border: 1px solid var(--border); }
+.btn-save { background: var(--accent); color: white; }
+
+/* ── CONFIRM MODAL ──────────────────────── */
+.confirm-modal {
+  background: var(--card);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 18px 36px;
+  width: 100%;
+  max-width: 520px;
+  animation: slideUp 0.25s ease;
+}
+.confirm-msg { font-size: 0.95rem; color: var(--text); margin-bottom: 20px; line-height: 1.6; }
+
+/* ── BACKUP ─────────────────────────────── */
+.backup-bar {
+  padding: 0 14px 14px;
+  display: flex;
+  gap: 8px;
+}
+.backup-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  color: var(--sub);
+  transition: all 0.15s;
+}
+.backup-btn:active { opacity: 0.7; }
+.backup-btn.export { border-color: var(--green); color: var(--green); }
+.backup-btn.import { border-color: var(--orange); color: var(--orange); }
+
+/* Textarea modal for import/export */
+.io-textarea {
+  width: 100%;
+  height: 160px;
+  background: var(--gray-light);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 0.75rem;
+  font-family: 'DM Mono', monospace;
+  color: var(--text);
+  outline: none;
+  resize: none;
+}
+.io-textarea:focus { border-color: var(--accent); }
+
+.annual-row {
+  display: grid;
+  grid-template-columns: 14px 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+}
+.annual-dot { width:10px;height:10px;border-radius:50%;flex-shrink:0; }
+.annual-name { font-size:0.8rem;font-weight:500;color:var(--text); }
+.annual-amt { font-size:0.88rem;font-weight:700;font-family:'DM Mono',monospace;text-align:right; }
+.annual-cnt { font-size:0.65rem;color:var(--muted);font-family:'DM Mono',monospace;text-align:right;min-width:32px; }
+
+.section-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 14px 14px;
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div class="header-top">
+    <div>
+      <div class="header-title">🏠 移工照顧費用管理</div>
+      <div class="header-sub">媽媽照護支出追蹤</div>
+    </div>
+    <div class="month-nav">
+      <button class="month-btn" onclick="changeMonth(-1)">‹</button>
+      <div class="month-label" id="monthLabel"></div>
+      <button class="month-btn" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+</header>
+
+<!-- BALANCE CARD -->
+<div style="padding: 14px 14px 0;">
+  <div class="balance-bar">
+    <div class="balance-row">
+      <div class="balance-label">📦 剩餘額度（$300,000 基準）</div>
+      <div class="balance-total" id="balanceVal">$300,000</div>
+    </div>
+    <div class="balance-detail">
+      <div class="balance-item">累計償還 <span id="repayTotal">$0</span></div>
+      <div class="balance-item">呂憲政支出 <span id="lvTotal2">$0</span></div>
+      <div class="balance-item">ETF還款 <span id="etfTotal2">$0</span></div>
+    </div>
+  </div>
+</div>
+<div class="progress-wrap" style="padding: 8px 14px 0;">
+  <div class="progress-bar-bg">
+    <div class="progress-bar-fill" id="progressFill" style="width:0%"></div>
+  </div>
+  <div class="progress-text">
+    <span>已用 <span id="pctUsed">0%</span></span>
+    <span>剩餘 <span id="pctLeft">100%</span></span>
+  </div>
+</div>
+
+<!-- SUMMARY GRID -->
+<div class="summary-grid" style="padding-top: 10px;">
+  <div class="sum-card">
+    <div class="sum-label">📘 呂憲政支出（本月）</div>
+    <div class="sum-val blue" id="s-lv">$0</div>
+    <div class="sum-count" id="c-lv">0 筆</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">🟢 公費支出（本月）</div>
+    <div class="sum-val green" id="s-pub">$0</div>
+    <div class="sum-count" id="c-pub">0 筆</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">🟣 ETF還款（本月）</div>
+    <div class="sum-val purple" id="s-etf">$0</div>
+    <div class="sum-count" id="c-etf">0 筆</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">🟡 每月移工費用</div>
+    <div class="sum-val" style="color:var(--orange)" id="s-mth">$0</div>
+    <div class="sum-count" id="c-mth">0 筆</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">🩷 全聯購物（＜$1,750）</div>
+    <div class="sum-val" style="color:#ec4899" id="s-ql">$0</div>
+    <div class="sum-count" id="c-ql">0 筆</div>
+  </div>
+  <div class="sum-card">
+    <div class="sum-label">📊 本月總支出</div>
+    <div class="sum-val red" id="s-total">$0</div>
+    <div class="sum-count" id="c-total">0 筆</div>
+  </div>
+</div>
+
+<!-- CATEGORY FILTER -->
+<div class="cat-strip" id="catStrip">
+  <div class="cat-chip chip-all active" data-cat="all" onclick="setFilter('all')">全部</div>
+  <div class="cat-chip chip-lv"  data-cat="lv"  onclick="setFilter('lv')">呂憲政支出</div>
+  <div class="cat-chip chip-pub" data-cat="pub" onclick="setFilter('pub')">公費支出</div>
+  <div class="cat-chip chip-etf" data-cat="etf" onclick="setFilter('etf')">ETF還款</div>
+  <div class="cat-chip chip-mth" data-cat="mth" onclick="setFilter('mth')">每月移工費用</div>
+  <div class="cat-chip chip-ql"  data-cat="ql"  onclick="setFilter('ql')">全聯購物</div>
+  <div class="cat-chip chip-none" data-cat="none" onclick="setFilter('none')">無</div>
+</div>
+
+<!-- ANNUAL TOTALS -->
+<div style="padding: 0 14px 10px;">
+  <div style="background:var(--card);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;">
+    <div onclick="toggleAnnual()" style="display:flex;align-items:center;justify-content:space-between;padding:11px 14px;cursor:pointer;user-select:none;">
+      <div style="font-size:0.78rem;font-weight:700;color:var(--sub);letter-spacing:0.04em;">📅 <span id="annualYearLabel"></span> 年度累計總覽</div>
+      <div id="annualArrow" style="font-size:0.85rem;color:var(--muted);transition:transform 0.2s;">▼</div>
+    </div>
+    <div id="annualPanel" style="border-top:1px solid var(--border);">
+      <div id="annualRows"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ADD BUTTON -->
+<div class="add-btn-wrap">
+  <button class="add-btn" onclick="openAdd()">＋ 新增支出</button>
+</div>
+
+<!-- BACKUP -->
+<div class="backup-bar">
+  <button class="backup-btn export" onclick="openExport()">📤 備份匯出</button>
+  <button class="backup-btn import" onclick="openImport()">📥 還原匯入</button>
+  <button class="backup-btn" style="border-color:#3b82f6;color:#3b82f6;" onclick="syncToSheet()">☁️ 同步試算表</button>
+  <button class="backup-btn" style="border-color:#8b5cf6;color:#8b5cf6;" onclick="restoreFromSheet()">🔄 雲端還原</button>
+</div>
+
+<div class="section-divider"></div>
+
+<!-- TRANSACTION LIST -->
+<div class="list-wrap">
+  <div class="list-section-title" id="listTitle">本月支出</div>
+  <div id="txList"></div>
+</div>
+
+<!-- ── ADD / EDIT MODAL ────────────────── -->
+<div class="modal-backdrop" id="addModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modalTitleText">新增支出</span>
+      <button class="modal-close" onclick="closeAdd()">✕</button>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">📅 日期</label>
+      <input class="form-input" type="date" id="fDate">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">💰 金額（元）</label>
+      <input class="form-input" type="number" inputmode="decimal" placeholder="0" id="fAmount">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">📝 說明</label>
+      <input class="form-input" type="text" placeholder="費用說明" id="fDesc">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">🏷️ 類別</label>
+      <div class="cat-grid">
+        <div class="cat-option co-lv"  data-cat="lv"  onclick="selCat('lv')">呂憲政支出</div>
+        <div class="cat-option co-pub" data-cat="pub" onclick="selCat('pub')">公費支出</div>
+        <div class="cat-option co-etf" data-cat="etf" onclick="selCat('etf')">ETF還款支付</div>
+        <div class="cat-option co-mth" data-cat="mth" onclick="selCat('mth')">每月移工費用</div>
+        <div class="cat-option co-ql"  data-cat="ql"  onclick="selCat('ql')">全聯購物＜$1,750</div>
+        <div class="cat-option co-none" data-cat="none" onclick="selCat('none')">無（未分類）</div>
+      </div>
+    </div>
+
+    <div class="form-btn-row">
+      <button class="form-btn btn-cancel" onclick="closeAdd()">取消</button>
+      <button class="form-btn btn-save" onclick="saveTx()">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── CONFIRM MODAL ───────────────────── -->
+<div class="modal-backdrop" id="confirmModal">
+  <div class="confirm-modal">
+    <div class="modal-title">
+      <span>確認刪除</span>
+      <button class="modal-close" onclick="closeConfirm()">✕</button>
+    </div>
+    <div class="confirm-msg" id="confirmMsg">確定要刪除這筆紀錄嗎？</div>
+    <div class="form-btn-row">
+      <button class="form-btn btn-cancel" onclick="closeConfirm()">取消</button>
+      <button class="form-btn" style="background:var(--red);color:white;" onclick="doDelete()">刪除</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── EXPORT MODAL ───────────────────── -->
+<div class="modal-backdrop" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>📤 備份匯出</span>
+      <button class="modal-close" onclick="closeModal('exportModal')">✕</button>
+    </div>
+
+    <!-- Format toggle -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;">
+      <button id="fmtJsonBtn" onclick="switchExportFmt('json')"
+        style="flex:1;padding:8px;border-radius:10px;font-size:0.8rem;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:2px solid var(--accent);background:var(--accent);color:white;transition:all 0.15s;">
+        JSON（還原用）
+      </button>
+      <button id="fmtCsvBtn" onclick="switchExportFmt('csv')"
+        style="flex:1;padding:8px;border-radius:10px;font-size:0.8rem;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;border:2px solid var(--border);background:var(--card);color:var(--sub);transition:all 0.15s;">
+        CSV（Excel用）
+      </button>
+    </div>
+
+    <p style="font-size:0.75rem;color:var(--sub);margin-bottom:10px;" id="exportHint">長按選取全部後複製，儲存至記事本或傳給自己。</p>
+    <textarea class="io-textarea" id="exportArea" readonly></textarea>
+    <!-- JSON buttons -->
+    <div class="form-btn-row" style="margin-top:12px;" id="jsonBtns">
+      <button class="form-btn btn-cancel" onclick="closeModal('exportModal')">關閉</button>
+      <button class="form-btn" style="flex:1;background:var(--accent);color:white;border:none;padding:13px;border-radius:12px;font-size:0.9rem;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;" onclick="copyExport()">📋 複製</button>
+    </div>
+    <!-- CSV buttons -->
+    <div style="margin-top:12px;display:none;" id="csvBtns">
+      <div class="form-btn-row" style="margin-bottom:8px;">
+        <button class="form-btn" style="flex:1;background:var(--green);color:white;border:none;padding:13px;border-radius:12px;font-size:0.9rem;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;" onclick="downloadCsv()">⬇️ 下載 CSV 檔</button>
+      </div>
+      <div class="form-btn-row">
+        <button class="form-btn btn-cancel" onclick="closeModal('exportModal')">關閉</button>
+        <button class="form-btn" style="flex:1;background:var(--accent);color:white;border:none;padding:13px;border-radius:12px;font-size:0.85rem;font-weight:600;font-family:'Noto Sans TC',sans-serif;cursor:pointer;" onclick="copyExport()">📋 複製（手機用）</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── IMPORT MODAL ───────────────────── -->
+<div class="modal-backdrop" id="importModal">
+  <div class="modal">
+    <div class="modal-title">
+      <span>📥 還原匯入</span>
+      <button class="modal-close" onclick="closeModal('importModal')">✕</button>
+    </div>
+    <p style="font-size:0.8rem;color:var(--sub);margin-bottom:12px;">貼上之前備份的資料後按「還原」。<br>⚠️ 這將覆蓋所有現有紀錄。</p>
+    <textarea class="io-textarea" id="importArea" placeholder="貼上備份資料..."></textarea>
+    <div class="form-btn-row" style="margin-top:12px;">
+      <button class="form-btn btn-cancel" onclick="closeModal('importModal')">取消</button>
+      <button class="form-btn" style="background:var(--orange);color:white;" onclick="doImport()">還原</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const GAS_URL = 'https://script.google.com/macros/s/AKfycbyq8jYe3gUHFrNbDe48N3XQcyp-FQBlJWFSbBMD8iCwbXnOaMW7hi04a-teDg7UywRk-w/exec';
+
+// ── STORAGE KEY ──────────────────────────
+const SK = 'migrant_care_v1';
+
+// ── STATE ────────────────────────────────
+let txns = [];
+let curYear, curMonth;
+let filterCat = 'all';
+let editId = null;
+let selectedCat = '';
+let pendingDelId = null;
+const BASE = 300000;
+
+// ── INIT ─────────────────────────────────
+(function() {
+  const now = new Date();
+  curYear = now.getFullYear();
+  curMonth = now.getMonth() + 1;
+  // Try to load from sheet first, fallback to localStorage
+  loadFromSheetOrLocal();
+})();
+
+function loadFromSheetOrLocal() {
+  // Check if we just loaded from sheet (flag in sessionStorage)
+  const fromSheet = sessionStorage.getItem('loadedFromSheet');
+  if (fromSheet) {
+    sessionStorage.removeItem('loadedFromSheet');
+    loadData();
+    renderAll();
+    return;
+  }
+
+  // Show loading overlay
+  const overlay = document.createElement('div');
+  overlay.id = 'loadOverlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:#f5f7fa;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;font-family:Noto Sans TC,sans-serif;';
+  overlay.innerHTML = '<div style="font-size:2.5rem;margin-bottom:16px;">🏠</div><div style="font-size:1rem;font-weight:700;color:#1e293b;margin-bottom:8px;">移工照顧費用管理</div><div style="font-size:0.82rem;color:#64748b;margin-bottom:24px;">正在從雲端載入資料...</div><div style="width:40px;height:40px;border:4px solid #e2e8f0;border-top-color:#3b82f6;border-radius:50%;animation:spin 0.8s linear infinite;"></div><style>@keyframes spin{to{transform:rotate(360deg)}}</style>';
+  document.body.appendChild(overlay);
+
+  const cbName = 'gasInit_' + Date.now();
+  const url = GAS_URL + '?callback=' + cbName + '&action=read';
+
+  const done = function(data) {
+    if (data && data.length > 0) {
+      const clean = data.filter(tx => {
+        if (!tx.date || !tx.amount || tx.amount <= 0) return false;
+        const year = new Date(tx.date).getFullYear();
+        return year >= 2020 && year <= 2100;
+      });
+      if (clean.length > 0) {
+        txns = clean;
+        saveData();
+      } else {
+        loadData();
+      }
+    } else {
+      loadData();
+    }
+    const ol = document.getElementById('loadOverlay');
+    if (ol) ol.remove();
+    renderAll();
+  };
+
+  const timer = setTimeout(() => {
+    delete window[cbName];
+    loadData();
+    const ol = document.getElementById('loadOverlay');
+    if (ol) ol.remove();
+    renderAll();
+  }, 10000);
+
+  window[cbName] = function(result) {
+    clearTimeout(timer);
+    delete window[cbName];
+    done(result.ok ? result.data : null);
+  };
+
+  const script = document.createElement('script');
+  script.src = url;
+  script.onerror = function() {
+    clearTimeout(timer);
+    delete window[cbName];
+    done(null);
+  };
+  document.head.appendChild(script);
+}
+
+// ── LOAD / SAVE ──────────────────────────
+function loadData() {
+  try {
+    const raw = localStorage.getItem(SK);
+    if (raw) txns = JSON.parse(raw);
+    else txns = [];
+  } catch(e) { txns = []; }
+}
+function saveData() {
+  localStorage.setItem(SK, JSON.stringify(txns));
+}
+
+// ── MONTH NAV ────────────────────────────
+function changeMonth(d) {
+  curMonth += d;
+  if (curMonth > 12) { curMonth = 1; curYear++; }
+  if (curMonth < 1)  { curMonth = 12; curYear--; }
+  renderAll();
+}
+
+function monthKey(tx) {
+  const d = new Date(tx.date);
+  return d.getFullYear() * 100 + (d.getMonth() + 1);
+}
+
+function curKey() { return curYear * 100 + curMonth; }
+
+// ── FILTER ───────────────────────────────
+function setFilter(cat) {
+  filterCat = cat;
+  document.querySelectorAll('.cat-chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.cat === cat);
+  });
+  renderList();
+}
+
+// ── RENDER ALL ───────────────────────────
+function renderAll() {
+  const mn = ['一月','二月','三月','四月','五月','六月','七月','八月','九月','十月','十一月','十二月'];
+  document.getElementById('monthLabel').textContent = curYear + '/' + String(curMonth).padStart(2,'0');
+  renderSummary();
+  renderAnnual();
+  renderList();
+}
+
+function renderSummary() {
+  // All-time repayment
+  const allRepay = txns.filter(t => t.cat === 'lv' || t.cat === 'etf').reduce((s,t) => s+t.amount, 0);
+  const allLv    = txns.filter(t => t.cat === 'lv').reduce((s,t) => s+t.amount, 0);
+  const allEtf   = txns.filter(t => t.cat === 'etf').reduce((s,t) => s+t.amount, 0);
+  const balance  = BASE - allRepay;
+  const pctUsed  = Math.min(100, Math.round(allRepay / BASE * 100));
+
+  document.getElementById('balanceVal').textContent = '$' + fmt(balance);
+  document.getElementById('repayTotal').textContent = '$' + fmt(allRepay);
+  document.getElementById('lvTotal2').textContent   = '$' + fmt(allLv);
+  document.getElementById('etfTotal2').textContent  = '$' + fmt(allEtf);
+  document.getElementById('progressFill').style.width = pctUsed + '%';
+  document.getElementById('pctUsed').textContent = pctUsed + '%';
+  document.getElementById('pctLeft').textContent = (100 - pctUsed) + '%';
+
+  // Monthly breakdown
+  const mk = curKey();
+  const monthly = txns.filter(t => monthKey(t) === mk);
+  const cats = ['lv','pub','etf','mth','ql'];
+  cats.forEach(cat => {
+    const items = monthly.filter(t => t.cat === cat);
+    const sum = items.reduce((s,t) => s+t.amount, 0);
+    document.getElementById('s-' + cat).textContent = '$' + fmt(sum);
+    document.getElementById('c-' + cat).textContent = items.length + ' 筆';
+  });
+  const total = monthly.reduce((s,t) => s+t.amount, 0);
+  document.getElementById('s-total').textContent = '$' + fmt(total);
+  document.getElementById('c-total').textContent = monthly.length + ' 筆';
+}
+
+function renderList() {
+  const mk = curKey();
+  let list = txns.filter(t => monthKey(t) === mk);
+  if (filterCat !== 'all') list = list.filter(t => t.cat === filterCat);
+  list.sort((a,b) => b.date.localeCompare(a.date));
+
+  const catNames = { lv:'呂憲政支出', pub:'公費支出', etf:'ETF還款', mth:'移工費用', ql:'全聯購物', none:'未分類' };
+  const mn = ['一','二','三','四','五','六','七','八','九','十','十一','十二'];
+  document.getElementById('listTitle').textContent = curYear + ' 年 ' + mn[curMonth-1] + ' 月支出';
+
+  const el = document.getElementById('txList');
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty-state">📭 本月尚無紀錄</div>';
+    return;
+  }
+
+  el.innerHTML = list.map(tx => {
+    const cat = tx.cat || 'none';
+    const d = new Date(tx.date);
+    const dateStr = (d.getMonth()+1) + '/' + d.getDate();
+    return `
+    <div class="tx-item">
+      <div class="tx-dot dot-${cat}"></div>
+      <div class="tx-main">
+        <div class="tx-desc">${tx.desc || '（無說明）'}</div>
+        <div class="tx-meta">
+          <span>${dateStr}</span>
+          <span class="tx-cat-badge badge-${cat}">${catNames[cat]||cat}</span>
+        </div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount">$${fmt(tx.amount)}</div>
+        <div class="tx-actions">
+          <button class="tx-btn" onclick="openEdit('${tx.id}')">編輯</button>
+          <button class="tx-btn del" onclick="askDelete('${tx.id}')">刪除</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── FORMAT ───────────────────────────────
+function fmt(n) { return Number(n).toLocaleString(); }
+
+// ── ADD / EDIT ───────────────────────────
+function openAdd() {
+  editId = null;
+  selectedCat = '';
+  document.getElementById('modalTitleText').textContent = '新增支出';
+  const today = new Date();
+  document.getElementById('fDate').value = today.toISOString().split('T')[0];
+  document.getElementById('fAmount').value = '';
+  document.getElementById('fDesc').value = '';
+  document.querySelectorAll('.cat-option').forEach(o => o.classList.remove('selected'));
+  document.getElementById('addModal').classList.add('open');
+}
+
+function openEdit(id) {
+  const tx = txns.find(t => t.id === id);
+  if (!tx) return;
+  editId = id;
+  selectedCat = tx.cat;
+  document.getElementById('modalTitleText').textContent = '編輯支出';
+  document.getElementById('fDate').value = tx.date;
+  document.getElementById('fAmount').value = tx.amount;
+  document.getElementById('fDesc').value = tx.desc;
+  document.querySelectorAll('.cat-option').forEach(o => {
+    o.classList.toggle('selected', o.dataset.cat === tx.cat);
+  });
+  document.getElementById('addModal').classList.add('open');
+}
+
+function closeAdd() {
+  document.getElementById('addModal').classList.remove('open');
+}
+
+function selCat(cat) {
+  selectedCat = cat;
+  document.querySelectorAll('.cat-option').forEach(o => {
+    o.classList.toggle('selected', o.dataset.cat === cat);
+  });
+}
+
+function saveTx() {
+  const date   = document.getElementById('fDate').value;
+  const amount = parseFloat(document.getElementById('fAmount').value);
+  const desc   = document.getElementById('fDesc').value.trim();
+
+  if (!date)           { alert('請填入日期'); return; }
+  if (!amount || amount <= 0) { alert('請填入有效金額'); return; }
+  if (!selectedCat)    { alert('請選擇類別'); return; }
+
+  if (editId) {
+    const tx = txns.find(t => t.id === editId);
+    if (tx) { tx.date = date; tx.amount = amount; tx.desc = desc; tx.cat = selectedCat; }
+  } else {
+    txns.push({ id: 'tx' + Date.now(), date, amount, desc, cat: selectedCat });
+  }
+  saveData();
+  closeAdd();
+  renderAll();
+  autoSyncToSheet();
+}
+
+// ── DELETE ───────────────────────────────
+function askDelete(id) {
+  pendingDelId = id;
+  const tx = txns.find(t => t.id === id);
+  document.getElementById('confirmMsg').textContent =
+    `確定要刪除「${tx ? tx.desc : '此筆'}」（$${tx ? fmt(tx.amount) : 0}）嗎？`;
+  document.getElementById('confirmModal').classList.add('open');
+}
+function closeConfirm() {
+  document.getElementById('confirmModal').classList.remove('open');
+  pendingDelId = null;
+}
+function doDelete() {
+  if (pendingDelId) txns = txns.filter(t => t.id !== pendingDelId);
+  saveData();
+  closeConfirm();
+  renderAll();
+  autoSyncToSheet();
+}
+
+// ── MODAL HELPERS ────────────────────────
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+// ── ANNUAL TOTALS ─────────────────────────
+let annualOpen = true;
+
+function toggleAnnual() {
+  annualOpen = !annualOpen;
+  document.getElementById('annualPanel').style.display = annualOpen ? '' : 'none';
+  document.getElementById('annualArrow').style.transform = annualOpen ? '' : 'rotate(-90deg)';
+}
+
+function renderAnnual() {
+  const year = curYear;
+  document.getElementById('annualYearLabel').textContent = year;
+  const annual = txns.filter(t => new Date(t.date).getFullYear() === year);
+
+  const catDef = [
+    { cat:'lv',  dot:'#3b82f6', name:'呂憲政支出',   cls:'blue' },
+    { cat:'pub', dot:'#10b981', name:'公費支出',       cls:'green' },
+    { cat:'etf', dot:'#8b5cf6', name:'ETF還款',        cls:'purple' },
+    { cat:'mth', dot:'#f59e0b', name:'每月移工費用',   cls:'orange' },
+    { cat:'ql',  dot:'#ec4899', name:'全聯購物',       cls:'pink' },
+  ];
+
+  let totalAmt = 0, totalCnt = 0;
+  const rows = catDef.map(d => {
+    const items = annual.filter(t => t.cat === d.cat);
+    const amt = items.reduce((s,t) => s+t.amount, 0);
+    if (d.cat !== 'etf') { totalAmt += amt; totalCnt += items.length; }
+    const color = d.cls === 'orange' ? 'var(--orange)' : d.cls === 'pink' ? '#ec4899' : 'var(--' + d.cls + ')';
+    return `<div class="annual-row" style="border-bottom:1px solid var(--border);">
+      <div class="annual-dot" style="background:${d.dot};"></div>
+      <div class="annual-name">${d.name}</div>
+      <div class="annual-amt" style="color:${color};">$${fmt(amt)}</div>
+      <div class="annual-cnt">${items.length} 筆</div>
+    </div>`;
+  }).join('');
+
+  const totalRow = `<div class="annual-row" style="background:var(--gray-light);">
+    <div class="annual-dot" style="background:var(--red);"></div>
+    <div class="annual-name" style="font-weight:700;color:var(--text);">年度總計</div>
+    <div class="annual-amt" style="color:var(--red);">$${fmt(totalAmt)}</div>
+    <div class="annual-cnt">${totalCnt} 筆</div>
+  </div>`;
+
+  document.getElementById('annualRows').innerHTML = rows + totalRow;
+}
+
+// ── AUTO BACKGROUND SYNC ─────────────────
+function autoSyncToSheet() {
+  const validTxns = txns.filter(tx => {
+    if (!tx.date || !tx.amount || tx.amount <= 0) return false;
+    const year = new Date(tx.date).getFullYear();
+    return year >= 2020 && year <= 2100;
+  });
+  const payload = encodeURIComponent(JSON.stringify(validTxns));
+  const cbName = 'gasAutoSync_' + Date.now();
+  const url = GAS_URL + '?callback=' + cbName + '&data=' + payload;
+  const timer = setTimeout(() => { delete window[cbName]; }, 15000);
+  window[cbName] = function() { clearTimeout(timer); delete window[cbName]; };
+  const script = document.createElement('script');
+  script.src = url;
+  script.onerror = function() { clearTimeout(timer); delete window[cbName]; };
+  document.head.appendChild(script);
+}
+
+// ── SYNC TO GOOGLE SHEET ─────────────────
+function syncToSheet() {
+  const btn = document.querySelector('button[onclick="syncToSheet()"]');
+  btn.textContent = '⏳ 同步中...';
+  btn.disabled = true;
+
+  // Filter valid data only
+  const validTxns = txns.filter(tx => {
+    if (!tx.date || !tx.amount || tx.amount <= 0) return false;
+    const year = new Date(tx.date).getFullYear();
+    return year >= 2020 && year <= 2100;
+  });
+
+  // Use XMLHttpRequest - most compatible with iOS Safari local files
+  const xhr = new XMLHttpRequest();
+  const payload = encodeURIComponent(JSON.stringify(validTxns));
+  const url = GAS_URL + '?data=' + payload;
+
+  xhr.open('GET', url, true);
+  xhr.timeout = 15000;
+
+  xhr.onload = function() { showSyncSuccess(); };
+  xhr.onerror = function() { showSyncSuccess(); };
+  xhr.ontimeout = function() { showSyncSuccess(); };
+
+  try {
+    xhr.send();
+  } catch(e) {
+    // fallback to script tag
+    const cbName = 'gasSync_' + Date.now();
+    const cbUrl = GAS_URL + '?callback=' + cbName + '&data=' + payload;
+    const timer = setTimeout(() => { delete window[cbName]; showSyncSuccess(); }, 10000);
+    window[cbName] = function() { clearTimeout(timer); delete window[cbName]; showSyncSuccess(); };
+    const script = document.createElement('script');
+    script.src = cbUrl;
+    script.onerror = function() { clearTimeout(timer); delete window[cbName]; showSyncSuccess(); };
+    document.head.appendChild(script);
+  }
+}
+
+function showSyncSuccess() {
+  const btn = document.querySelector('button[onclick="syncToSheet()"]');
+  btn.textContent = '✅ 同步完成！';
+  btn.style.borderColor = 'var(--green)';
+  btn.style.color = 'var(--green)';
+  setTimeout(() => {
+    btn.textContent = '☁️ 同步試算表';
+    btn.style.borderColor = '#3b82f6';
+    btn.style.color = '#3b82f6';
+    btn.disabled = false;
+  }, 3000);
+}
+
+// ── RESTORE FROM GOOGLE SHEET ────────────
+function restoreFromSheet() {
+  const btn = document.querySelector('button[onclick="restoreFromSheet()"]');
+  const orig = btn.textContent;
+  btn.textContent = '⏳ 讀取中...';
+  btn.disabled = true;
+
+  const cbName = 'gasRestore_' + Date.now();
+  const url = GAS_URL + '?callback=' + cbName + '&action=read';
+
+  const timer = setTimeout(() => {
+    delete window[cbName];
+    btn.textContent = '❌ 讀取失敗';
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    setTimeout(() => { btn.textContent = orig; btn.style.borderColor='#8b5cf6'; btn.style.color='#8b5cf6'; btn.disabled=false; }, 3000);
+  }, 15000);
+
+  window[cbName] = function(result) {
+    clearTimeout(timer);
+    delete window[cbName];
+
+    if (!result.ok || !result.data) {
+      btn.textContent = '❌ 讀取失敗';
+      btn.style.borderColor = 'var(--red)';
+      btn.style.color = 'var(--red)';
+      setTimeout(() => { btn.textContent = orig; btn.style.borderColor='#8b5cf6'; btn.style.color='#8b5cf6'; btn.disabled=false; }, 3000);
+      return;
+    }
+
+    // Filter out bad data: invalid dates, zero amounts, 1970 dates
+    txns = result.data.filter(tx => {
+      if (!tx.date || !tx.amount || tx.amount <= 0) return false;
+      const year = new Date(tx.date).getFullYear();
+      if (year < 2020 || year > 2100) return false;
+      if (!tx.desc && tx.cat === 'none') return false;
+      return true;
+    });
+    saveData();
+    renderAll();
+
+    btn.textContent = '✅ 還原完成 ' + txns.length + ' 筆！';
+    btn.style.borderColor = 'var(--green)';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = orig; btn.style.borderColor='#8b5cf6'; btn.style.color='#8b5cf6'; btn.disabled=false; }, 3000);
+  };
+
+  const script = document.createElement('script');
+  script.src = url;
+  script.onerror = function() {
+    clearTimeout(timer);
+    delete window[cbName];
+    btn.textContent = '❌ 讀取失敗';
+    btn.style.borderColor = 'var(--red)';
+    btn.style.color = 'var(--red)';
+    setTimeout(() => { btn.textContent = orig; btn.style.borderColor='#8b5cf6'; btn.style.color='#8b5cf6'; btn.disabled=false; }, 3000);
+  };
+  document.head.appendChild(script);
+}
+
+// ── EXPORT / IMPORT ──────────────────────
+let exportFmt = 'json';
+
+const catNames = { lv:'呂憲政支出', pub:'公費支出', etf:'ETF還款支付', mth:'每月移工費用', ql:'全聯購物', none:'未分類' };
+
+function buildCsv() {
+  const rows = ['\uFEFF日期,金額,說明,類別,備註'];
+  const sorted = [...txns].sort((a,b) => a.date.localeCompare(b.date));
+  sorted.forEach(tx => {
+    const desc = (tx.desc || '').replace(/,/g,'，');
+    const cat  = catNames[tx.cat] || tx.cat;
+    // 備註欄：標記償還類別
+    const note = (tx.cat === 'lv' || tx.cat === 'etf') ? '償還項目' : (tx.cat === 'pub' || tx.cat === 'ql' || tx.cat === 'mth') ? '公共費用' : '';
+    rows.push(`${tx.date},${tx.amount},"${desc}","${cat}","${note}"`);
+  });
+  return rows.join('\r\n');
+}
+
+function switchExportFmt(fmt) {
+  exportFmt = fmt;
+  const isJson = fmt === 'json';
+  // toggle button styles
+  const jBtn = document.getElementById('fmtJsonBtn');
+  const cBtn = document.getElementById('fmtCsvBtn');
+  jBtn.style.background = isJson ? 'var(--accent)' : 'var(--card)';
+  jBtn.style.color = isJson ? 'white' : 'var(--sub)';
+  jBtn.style.borderColor = isJson ? 'var(--accent)' : 'var(--border)';
+  cBtn.style.background = !isJson ? 'var(--green)' : 'var(--card)';
+  cBtn.style.color = !isJson ? 'white' : 'var(--sub)';
+  cBtn.style.borderColor = !isJson ? 'var(--green)' : 'var(--border)';
+
+  document.getElementById('jsonBtns').style.display = isJson ? '' : 'none';
+  document.getElementById('csvBtns').style.display  = !isJson ? '' : 'none';
+  document.getElementById('exportHint').textContent = isJson
+    ? '長按選取全部後複製，儲存至記事本或傳給自己（還原匯入用）。'
+    : '電腦：按「下載 CSV 檔」直接存檔。手機：按「複製」貼到記事本存成 .csv。';
+  document.getElementById('exportArea').value = isJson
+    ? JSON.stringify(txns, null, 2)
+    : buildCsv();
+}
+
+function openExport() {
+  exportFmt = 'json';
+  switchExportFmt('json');
+  document.getElementById('exportModal').classList.add('open');
+}
+
+function copyExport() {
+  const area = document.getElementById('exportArea');
+  area.select();
+  try { document.execCommand('copy'); alert('已複製！請貼上至記事本保存。'); }
+  catch(e) { alert('請長按文字框後選取全部複製。'); }
+}
+
+function downloadCsv() {
+  const csv = buildCsv();
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = '移工費用管理_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+function openImport() {
+  document.getElementById('importArea').value = '';
+  document.getElementById('importModal').classList.add('open');
+}
+function doImport() {
+  const raw = document.getElementById('importArea').value.trim();
+  if (!raw) { alert('請貼上備份資料'); return; }
+  try {
+    const data = JSON.parse(raw);
+    if (!Array.isArray(data)) { alert('格式錯誤'); return; }
+    txns = data;
+    saveData();
+    closeModal('importModal');
+    renderAll();
+    alert('✅ 還原成功！共 ' + txns.length + ' 筆資料。');
+  } catch(e) { alert('格式解析失敗，請確認資料正確。'); }
+}
+
+// ── CLOSE ON BACKDROP CLICK ───────────────
+document.querySelectorAll('.modal-backdrop').forEach(bd => {
+  bd.addEventListener('click', e => {
+    if (e.target === bd) bd.classList.remove('open');
+  });
+});
+</script>
+</body>
+</html>
