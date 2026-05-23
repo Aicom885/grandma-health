@@ -26,7 +26,7 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .screen { display: none; flex-direction: column; height: 100vh; }
 .screen.active { display: flex; }
 
-/* 選擇語言畫面 */
+/* 選擇語言 */
 #pickScreen { align-items: center; justify-content: center; gap: 18px; padding: 32px 24px; background: #f4f4f4; }
 .pick-title { font-size: 22px; font-weight: 700; color: #333; text-align: center; }
 .pick-sub { font-size: 14px; color: #888; text-align: center; margin-top: -6px; }
@@ -35,8 +35,8 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .room-row input { flex: 1; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 15px; outline: none; background: #fff; font-family: inherit; }
 .room-row input:focus { border-color: #7B3810; }
 .pick-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px; }
-.pick-btn { width: 100%; padding: 18px 20px; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.12s, opacity 0.15s; }
-.pick-btn:active { transform: scale(0.97); opacity: 0.85; }
+.pick-btn { width: 100%; padding: 18px 20px; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.12s; }
+.pick-btn:active { transform: scale(0.97); }
 .pick-btn.zh-btn { background: linear-gradient(135deg, #7B3810, #A0522D); }
 .pick-btn.id-btn { background: linear-gradient(135deg, #0A5E49, #1A8C6A); }
 .pick-btn .flag { font-size: 28px; }
@@ -44,17 +44,22 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .pick-btn-main { font-size: 18px; }
 .pick-btn-sub { font-size: 12px; font-weight: 400; opacity: 0.85; }
 
-/* 聊天畫面 */
+/* 聊天 */
 #chatScreen { overflow: hidden; }
-.chat-header { flex-shrink: 0; padding: 12px 16px; padding-top: max(env(safe-area-inset-top, 12px), 12px); display: flex; align-items: center; justify-content: space-between; color: #fff; }
+.chat-header { flex-shrink: 0; padding: 10px 14px; padding-top: max(env(safe-area-inset-top, 10px), 10px); display: flex; align-items: center; justify-content: space-between; color: #fff; gap: 8px; }
 .zh-header { background: linear-gradient(135deg, #7B3810, #A0522D); }
 .id-header { background: linear-gradient(135deg, #0A5E49, #1A8C6A); }
-.header-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-.header-flag { font-size: 20px; }
-.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; display: inline-block; margin-left: 6px; transition: background 0.3s; }
+.header-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex: 1; }
+.header-flag { font-size: 18px; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; display: inline-block; margin-left: 4px; transition: background 0.3s; flex-shrink: 0; }
 .status-dot.online { background: #4ade80; }
-.exit-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+.header-btns { display: flex; gap: 6px; flex-shrink: 0; }
+.hdr-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.hdr-btn:active { background: rgba(255,255,255,0.35); }
+.hdr-btn.clear-btn { background: rgba(255,80,80,0.28); }
+.hdr-btn.clear-btn:active { background: rgba(255,80,80,0.45); }
 
+/* 訊息 */
 .messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
 .msg-row { display: flex; flex-direction: column; max-width: 82%; }
 .msg-row.sent { align-self: flex-end; align-items: flex-end; }
@@ -80,6 +85,7 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 @keyframes tdot { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
 
+/* 輸入區 */
 .input-area { flex-shrink: 0; padding: 10px 12px; padding-bottom: max(env(safe-area-inset-bottom, 10px), 10px); background: #fff; border-top: 1px solid #eee; display: flex; align-items: flex-end; gap: 8px; }
 .input-area textarea { flex: 1; border: 1.5px solid #ddd; border-radius: 20px; padding: 10px 14px; font-size: 16px; line-height: 1.4; resize: none; outline: none; max-height: 100px; min-height: 42px; font-family: inherit; background: #f9f9f9; overflow-y: auto; transition: border-color 0.2s; }
 .zh-input-area textarea:focus { border-color: #7B3810; }
@@ -94,7 +100,21 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .empty-state .icon { font-size: 48px; }
 .empty-state p { font-size: 14px; text-align: center; line-height: 1.6; }
 
-.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #c0392b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; white-space: nowrap; z-index: 99; }
+/* 確認清除彈窗 */
+.overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: none; align-items: center; justify-content: center; z-index: 100; padding: 24px; }
+.overlay.show { display: flex; }
+.confirm-box { background: #fff; border-radius: 18px; padding: 24px 22px; width: 100%; max-width: 300px; text-align: center; display: flex; flex-direction: column; gap: 14px; }
+.confirm-box .icon { font-size: 36px; }
+.confirm-box h3 { font-size: 17px; font-weight: 700; color: #111; }
+.confirm-box p { font-size: 14px; color: #888; line-height: 1.5; }
+.confirm-btns { display: flex; gap: 10px; }
+.confirm-btns button { flex: 1; padding: 13px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; }
+.btn-cancel { background: #f0f0f0; color: #555; }
+.btn-cancel:active { background: #e0e0e0; }
+.btn-confirm { background: #e53935; color: #fff; }
+.btn-confirm:active { background: #b71c1c; }
+
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; white-space: nowrap; z-index: 99; }
 .toast.show { display: block; }
 </style>
 </head>
@@ -134,7 +154,10 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
       <span id="headerTitle"></span>
       <span class="status-dot" id="statusDot"></span>
     </div>
-    <button class="exit-btn" onclick="exitChat()">← 離開</button>
+    <div class="header-btns">
+      <button class="hdr-btn clear-btn" onclick="askClear()">🗑 清除對話</button>
+      <button class="hdr-btn" onclick="exitChat()">← 離開</button>
+    </div>
   </div>
   <div class="messages" id="messages">
     <div class="empty-state" id="emptyState">
@@ -151,10 +174,23 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
   </div>
 </div>
 
+<!-- 確認清除彈窗 -->
+<div class="overlay" id="clearOverlay">
+  <div class="confirm-box">
+    <div class="icon">🗑️</div>
+    <h3>清除所有對話？</h3>
+    <p>兩方的訊息記錄都會刪除，<br>無法復原。</p>
+    <div class="confirm-btns">
+      <button class="btn-cancel" onclick="closeClear()">取消</button>
+      <button class="btn-confirm" onclick="confirmClear()">確定清除</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
-let myLang='', room='room1', msgRef=null, typingRef=null;
+let myLang='', room='room1', msgRef=null, typingRef=null, roomRef=null;
 
 function enterChat(lang){
   room = document.getElementById('roomInput').value.trim() || 'room1';
@@ -169,7 +205,7 @@ function enterChat(lang){
 
   showScreen('chatScreen');
 
-  const roomRef = db.ref('翻譯對話/'+room);
+  roomRef   = db.ref('翻譯對話/'+room);
   msgRef    = roomRef.child('messages');
   typingRef = roomRef.child('typing/'+lang);
 
@@ -177,10 +213,18 @@ function enterChat(lang){
     document.getElementById('statusDot').className='status-dot '+(s.val()?'online':'');
   });
 
+  // 監聽訊息新增
   msgRef.on('child_added', snap=>{
     addBubble(snap.val(), snap.key);
     document.getElementById('emptyState').style.display='none';
     scrollBottom();
+  });
+
+  // 監聽訊息清除（對方清除時，自己畫面也清空）
+  msgRef.on('value', snap=>{
+    if(!snap.exists()){
+      clearLocalMessages();
+    }
   });
 
   const other = isZh?'id':'zh';
@@ -196,13 +240,15 @@ function enterChat(lang){
 }
 
 function addBubble(d, key){
+  // 避免重複加入
+  if(document.querySelector('[data-key="'+key+'"]')) return;
   const msgs=document.getElementById('messages');
   const isSent=(d.from===myLang);
   const row=document.createElement('div');
   row.className='msg-row '+(isSent?'sent':'recv')+(d.from==='id'?' id-msg':'');
   row.dataset.key=key;
-  const mainText = isSent ? d.original  : d.translated;
-  const subText  = isSent ? d.translated: d.original;
+  const mainText = isSent ? d.original   : d.translated;
+  const subText  = isSent ? d.translated : d.original;
   const time=new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
   row.innerHTML=`<div class="bubble"><div class="bubble-main">${esc(mainText)}</div><div class="bubble-trans">${esc(subText)}</div></div><div class="msg-time">${time}</div>`;
   msgs.insertBefore(row, document.getElementById('typingIndicator'));
@@ -224,7 +270,7 @@ async function sendMessage(){
     const data=await res.json();
     if(data.responseStatus===200||data.responseStatus==='200'){
       translated=data.responseData.translatedText;
-    } else { throw new Error('翻譯失敗'); }
+    } else { throw new Error(); }
   } catch(e){
     showToast('⚠️ 翻譯失敗，請確認網路連線');
     btn.disabled=false; return;
@@ -239,13 +285,35 @@ async function sendMessage(){
   input.focus();
 }
 
+/* ── 清除功能 ── */
+function askClear(){
+  document.getElementById('clearOverlay').classList.add('show');
+}
+function closeClear(){
+  document.getElementById('clearOverlay').classList.remove('show');
+}
+async function confirmClear(){
+  closeClear();
+  try {
+    await msgRef.remove();   // 從 Firebase 刪除所有訊息
+    clearLocalMessages();
+    showToast('✅ 對話已清除');
+  } catch(e){
+    showToast('⚠️ 清除失敗，請重試');
+  }
+}
+function clearLocalMessages(){
+  const msgs = document.getElementById('messages');
+  // 移除所有訊息泡泡，保留 emptyState 和 typingIndicator
+  Array.from(msgs.querySelectorAll('.msg-row')).forEach(r=>r.remove());
+  document.getElementById('emptyState').style.display='';
+}
+
 function exitChat(){
   if(typingRef) typingRef.set(false);
-  if(msgRef) msgRef.off();
+  if(msgRef){ msgRef.off(); }
   db.ref('.info/connected').off();
-  document.getElementById('messages').innerHTML=`
-    <div class="empty-state" id="emptyState"><div class="icon">💬</div><p>還沒有訊息<br>輸入文字後按送出<br>對方會即時收到翻譯</p></div>
-    <div class="typing-indicator" id="typingIndicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  clearLocalMessages();
   showScreen('pickScreen');
 }
 
