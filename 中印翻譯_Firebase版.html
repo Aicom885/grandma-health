@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>中文 ↔ 印尼文 即時翻譯</title>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey:            "AIzaSyCc1u9KPqZjt_8L-9rgGLhNqIeGL7B5hD4",
+  authDomain:        "aicom-670b2.firebaseapp.com",
+  databaseURL:       "https://aicom-670b2-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId:         "aicom-670b2",
+  storageBucket:     "aicom-670b2.firebasestorage.app",
+  messagingSenderId: "706280077646",
+  appId:             "1:706280077646:web:b20f3887f5e9c12686c61f"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+</script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft JhengHei", sans-serif; background: #f4f4f4; }
+.screen { display: none; flex-direction: column; height: 100vh; }
+.screen.active { display: flex; }
+
+/* 選擇語言畫面 */
+#pickScreen { align-items: center; justify-content: center; gap: 18px; padding: 32px 24px; background: #f4f4f4; }
+.pick-title { font-size: 22px; font-weight: 700; color: #333; text-align: center; }
+.pick-sub { font-size: 14px; color: #888; text-align: center; margin-top: -6px; }
+.room-row { display: flex; align-items: center; gap: 8px; width: 100%; max-width: 320px; }
+.room-row label { font-size: 13px; color: #666; white-space: nowrap; font-weight: 600; }
+.room-row input { flex: 1; padding: 10px 14px; border: 1.5px solid #ddd; border-radius: 10px; font-size: 15px; outline: none; background: #fff; font-family: inherit; }
+.room-row input:focus { border-color: #7B3810; }
+.pick-btns { display: flex; flex-direction: column; gap: 14px; width: 100%; max-width: 320px; }
+.pick-btn { width: 100%; padding: 18px 20px; border: none; border-radius: 16px; font-size: 18px; font-weight: 700; color: #fff; cursor: pointer; display: flex; align-items: center; gap: 12px; transition: transform 0.12s, opacity 0.15s; }
+.pick-btn:active { transform: scale(0.97); opacity: 0.85; }
+.pick-btn.zh-btn { background: linear-gradient(135deg, #7B3810, #A0522D); }
+.pick-btn.id-btn { background: linear-gradient(135deg, #0A5E49, #1A8C6A); }
+.pick-btn .flag { font-size: 28px; }
+.pick-btn-text { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; }
+.pick-btn-main { font-size: 18px; }
+.pick-btn-sub { font-size: 12px; font-weight: 400; opacity: 0.85; }
+
+/* 聊天畫面 */
+#chatScreen { overflow: hidden; }
+.chat-header { flex-shrink: 0; padding: 12px 16px; padding-top: max(env(safe-area-inset-top, 12px), 12px); display: flex; align-items: center; justify-content: space-between; color: #fff; }
+.zh-header { background: linear-gradient(135deg, #7B3810, #A0522D); }
+.id-header { background: linear-gradient(135deg, #0A5E49, #1A8C6A); }
+.header-title { font-size: 16px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.header-flag { font-size: 20px; }
+.status-dot { width: 8px; height: 8px; border-radius: 50%; background: #aaa; display: inline-block; margin-left: 6px; transition: background 0.3s; }
+.status-dot.online { background: #4ade80; }
+.exit-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; }
+
+.messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.msg-row { display: flex; flex-direction: column; max-width: 82%; }
+.msg-row.sent { align-self: flex-end; align-items: flex-end; }
+.msg-row.recv { align-self: flex-start; align-items: flex-start; }
+.bubble { padding: 10px 14px; border-radius: 18px; line-height: 1.5; max-width: 100%; }
+.sent .bubble { border-bottom-right-radius: 4px; }
+.recv .bubble { border-bottom-left-radius: 4px; }
+.bubble-main { font-size: 17px; font-weight: 500; }
+.bubble-trans { font-size: 13px; margin-top: 5px; opacity: 0.82; }
+.sent .bubble { background: #7B3810; }
+.sent .bubble .bubble-main { color: #fff; }
+.sent .bubble .bubble-trans { color: rgba(255,255,255,0.85); }
+.sent.id-msg .bubble { background: #0A5E49; }
+.recv .bubble { background: #fff; border: 1px solid #e0e0e0; }
+.recv .bubble .bubble-main { color: #111; }
+.recv .bubble .bubble-trans { color: #777; }
+.msg-time { font-size: 10px; color: #bbb; margin-top: 3px; padding: 0 4px; }
+
+.typing-indicator { align-self: flex-start; background: #fff; border: 1px solid #e0e0e0; border-radius: 18px; border-bottom-left-radius: 4px; padding: 10px 16px; display: none; gap: 5px; align-items: center; }
+.typing-indicator.show { display: flex; }
+.typing-dot { width: 7px; height: 7px; border-radius: 50%; background: #bbb; animation: tdot 1.2s infinite; }
+.typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes tdot { 0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)} }
+
+.input-area { flex-shrink: 0; padding: 10px 12px; padding-bottom: max(env(safe-area-inset-bottom, 10px), 10px); background: #fff; border-top: 1px solid #eee; display: flex; align-items: flex-end; gap: 8px; }
+.input-area textarea { flex: 1; border: 1.5px solid #ddd; border-radius: 20px; padding: 10px 14px; font-size: 16px; line-height: 1.4; resize: none; outline: none; max-height: 100px; min-height: 42px; font-family: inherit; background: #f9f9f9; overflow-y: auto; transition: border-color 0.2s; }
+.zh-input-area textarea:focus { border-color: #7B3810; }
+.id-input-area textarea:focus { border-color: #0A5E49; }
+.send-btn { width: 44px; height: 44px; border-radius: 50%; border: none; color: #fff; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.12s, opacity 0.15s; }
+.send-btn:active { transform: scale(0.92); }
+.send-btn:disabled { opacity: 0.4; }
+.zh-input-area .send-btn { background: #7B3810; }
+.id-input-area .send-btn { background: #0A5E49; }
+
+.empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #ccc; pointer-events: none; }
+.empty-state .icon { font-size: 48px; }
+.empty-state p { font-size: 14px; text-align: center; line-height: 1.6; }
+
+.toast { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #c0392b; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; font-weight: 600; display: none; white-space: nowrap; z-index: 99; }
+.toast.show { display: block; }
+</style>
+</head>
+<body>
+
+<!-- 選擇語言 -->
+<div id="pickScreen" class="screen active">
+  <div class="pick-title">🌏 即時翻譯對話</div>
+  <div class="pick-sub">選擇你使用的語言 / Pilih bahasa Anda</div>
+  <div class="room-row">
+    <label>房間代碼</label>
+    <input type="text" id="roomInput" value="room1" placeholder="自訂房間名稱" maxlength="20">
+  </div>
+  <div class="pick-btns">
+    <button class="pick-btn zh-btn" onclick="enterChat('zh')">
+      <span class="flag">🇹🇼</span>
+      <div class="pick-btn-text">
+        <span class="pick-btn-main">我說中文</span>
+        <span class="pick-btn-sub">台北方使用</span>
+      </div>
+    </button>
+    <button class="pick-btn id-btn" onclick="enterChat('id')">
+      <span class="flag">🇮🇩</span>
+      <div class="pick-btn-text">
+        <span class="pick-btn-main">Saya pakai Bahasa Indonesia</span>
+        <span class="pick-btn-sub">嘉義方使用 / Pihak Chiayi</span>
+      </div>
+    </button>
+  </div>
+</div>
+
+<!-- 聊天 -->
+<div id="chatScreen" class="screen">
+  <div class="chat-header" id="chatHeader">
+    <div class="header-title">
+      <span class="header-flag" id="headerFlag"></span>
+      <span id="headerTitle"></span>
+      <span class="status-dot" id="statusDot"></span>
+    </div>
+    <button class="exit-btn" onclick="exitChat()">← 離開</button>
+  </div>
+  <div class="messages" id="messages">
+    <div class="empty-state" id="emptyState">
+      <div class="icon">💬</div>
+      <p>還沒有訊息<br>輸入文字後按送出<br>對方會即時收到翻譯</p>
+    </div>
+    <div class="typing-indicator" id="typingIndicator">
+      <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+    </div>
+  </div>
+  <div class="input-area" id="inputArea">
+    <textarea id="msgInput" rows="1" placeholder="輸入訊息…" oninput="autoResize(this)"></textarea>
+    <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let myLang='', room='room1', msgRef=null, typingRef=null;
+
+function enterChat(lang){
+  room = document.getElementById('roomInput').value.trim() || 'room1';
+  myLang = lang;
+  const isZh = lang==='zh';
+
+  document.getElementById('chatHeader').className = 'chat-header '+(isZh?'zh-header':'id-header');
+  document.getElementById('inputArea').className  = 'input-area '+(isZh?'zh-input-area':'id-input-area');
+  document.getElementById('headerFlag').textContent  = isZh?'🇹🇼':'🇮🇩';
+  document.getElementById('headerTitle').textContent = isZh?'中文模式':'Mode Indonesia';
+  document.getElementById('msgInput').placeholder    = isZh?'輸入中文訊息…':'Ketik pesan Indonesia…';
+
+  showScreen('chatScreen');
+
+  const roomRef = db.ref('翻譯對話/'+room);
+  msgRef    = roomRef.child('messages');
+  typingRef = roomRef.child('typing/'+lang);
+
+  db.ref('.info/connected').on('value', s=>{
+    document.getElementById('statusDot').className='status-dot '+(s.val()?'online':'');
+  });
+
+  msgRef.on('child_added', snap=>{
+    addBubble(snap.val(), snap.key);
+    document.getElementById('emptyState').style.display='none';
+    scrollBottom();
+  });
+
+  const other = isZh?'id':'zh';
+  roomRef.child('typing/'+other).on('value', s=>{
+    const ti=document.getElementById('typingIndicator');
+    ti.className='typing-indicator'+(s.val()?' show':'');
+    if(s.val()) scrollBottom();
+  });
+
+  document.getElementById('msgInput').addEventListener('input', ()=>{
+    typingRef.set(document.getElementById('msgInput').value.length>0);
+  });
+}
+
+function addBubble(d, key){
+  const msgs=document.getElementById('messages');
+  const isSent=(d.from===myLang);
+  const row=document.createElement('div');
+  row.className='msg-row '+(isSent?'sent':'recv')+(d.from==='id'?' id-msg':'');
+  row.dataset.key=key;
+  const mainText = isSent ? d.original  : d.translated;
+  const subText  = isSent ? d.translated: d.original;
+  const time=new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  row.innerHTML=`<div class="bubble"><div class="bubble-main">${esc(mainText)}</div><div class="bubble-trans">${esc(subText)}</div></div><div class="msg-time">${time}</div>`;
+  msgs.insertBefore(row, document.getElementById('typingIndicator'));
+}
+
+async function sendMessage(){
+  const input=document.getElementById('msgInput');
+  const text=input.value.trim();
+  if(!text) return;
+  const btn=document.getElementById('sendBtn');
+  btn.disabled=true;
+  input.value=''; input.style.height='';
+  typingRef.set(false);
+
+  const langpair=myLang==='zh'?'zh-TW|id':'id|zh-TW';
+  let translated='';
+  try{
+    const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair='+langpair);
+    const data=await res.json();
+    if(data.responseStatus===200||data.responseStatus==='200'){
+      translated=data.responseData.translatedText;
+    } else { throw new Error('翻譯失敗'); }
+  } catch(e){
+    showToast('⚠️ 翻譯失敗，請確認網路連線');
+    btn.disabled=false; return;
+  }
+
+  try{
+    await msgRef.push({from:myLang, original:text, translated:translated, ts:Date.now()});
+  } catch(e){
+    showToast('⚠️ 傳送失敗，請確認網路連線');
+  }
+  btn.disabled=false;
+  input.focus();
+}
+
+function exitChat(){
+  if(typingRef) typingRef.set(false);
+  if(msgRef) msgRef.off();
+  db.ref('.info/connected').off();
+  document.getElementById('messages').innerHTML=`
+    <div class="empty-state" id="emptyState"><div class="icon">💬</div><p>還沒有訊息<br>輸入文字後按送出<br>對方會即時收到翻譯</p></div>
+    <div class="typing-indicator" id="typingIndicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  showScreen('pickScreen');
+}
+
+function showScreen(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function scrollBottom(){ const m=document.getElementById('messages'); m.scrollTop=m.scrollHeight; }
+function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
+function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'; setTimeout(()=>t.className='toast',3000); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+document.getElementById('msgInput').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+</script>
+</body>
+</html>
