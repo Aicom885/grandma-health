@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>中文 ↔ 印尼文 即時翻譯</title>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-app-compat.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/firebase@10.7.1/firebase-database-compat.min.js"></script>
 <script>
 const firebaseConfig = {
   apiKey:            "AIzaSyCc1u9KPqZjt_8L-9rgGLhNqIeGL7B5hD4",
@@ -49,15 +49,19 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .chat-header { flex-shrink: 0; padding: 10px 14px; padding-top: max(env(safe-area-inset-top, 10px), 10px); display: flex; align-items: center; justify-content: space-between; color: #fff; gap: 8px; }
 .zh-header { background: linear-gradient(135deg, #7B3810, #A0522D); }
 .id-header { background: linear-gradient(135deg, #0A5E49, #1A8C6A); }
-.header-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex: 1; }
-.header-flag { font-size: 18px; }
-.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; display: inline-block; margin-left: 4px; transition: background 0.3s; flex-shrink: 0; }
+.header-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 6px; flex: 1; min-width: 0; }
+.header-flag { font-size: 18px; flex-shrink: 0; }
+.status-dot { width: 7px; height: 7px; border-radius: 50%; background: #aaa; display: inline-block; margin-left: 2px; transition: background 0.3s; flex-shrink: 0; }
 .status-dot.online { background: #4ade80; }
 .header-btns { display: flex; gap: 6px; flex-shrink: 0; }
-.hdr-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 11px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.hdr-btn { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 10px; border-radius: 20px; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; display: flex; align-items: center; gap: 4px; }
 .hdr-btn:active { background: rgba(255,255,255,0.35); }
 .hdr-btn.clear-btn { background: rgba(255,80,80,0.28); }
 .hdr-btn.clear-btn:active { background: rgba(255,80,80,0.45); }
+/* 提示音開關 */
+.sound-toggle { background: rgba(255,255,255,0.2); border: none; color: #fff; padding: 6px 10px; border-radius: 20px; font-size: 13px; cursor: pointer; display: flex; align-items: center; gap: 4px; font-weight: 600; }
+.sound-toggle:active { background: rgba(255,255,255,0.35); }
+.sound-toggle.muted { background: rgba(0,0,0,0.2); opacity: 0.7; }
 
 /* 訊息 */
 .messages { flex: 1; overflow-y: auto; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
@@ -77,6 +81,10 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .recv .bubble .bubble-main { color: #111; }
 .recv .bubble .bubble-trans { color: #777; }
 .msg-time { font-size: 10px; color: #bbb; margin-top: 3px; padding: 0 4px; }
+
+/* 新訊息閃爍效果 */
+@keyframes newMsg { 0%{background:rgba(255,220,100,0.35)} 100%{background:transparent} }
+.recv.new-msg { animation: newMsg 1.2s ease-out; }
 
 .typing-indicator { align-self: flex-start; background: #fff; border: 1px solid #e0e0e0; border-radius: 18px; border-bottom-left-radius: 4px; padding: 10px 16px; display: none; gap: 5px; align-items: center; }
 .typing-indicator.show { display: flex; }
@@ -155,7 +163,8 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
       <span class="status-dot" id="statusDot"></span>
     </div>
     <div class="header-btns">
-      <button class="hdr-btn clear-btn" onclick="askClear()">🗑 清除對話</button>
+      <button class="sound-toggle" id="soundToggle" onclick="toggleSound()">🔔 提示音</button>
+      <button class="hdr-btn clear-btn" onclick="askClear()">🗑 清除</button>
       <button class="hdr-btn" onclick="exitChat()">← 離開</button>
     </div>
   </div>
@@ -191,9 +200,61 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 
 <script>
 let myLang='', room='room1', msgRef=null, typingRef=null, roomRef=null;
+let soundOn = true;         // 提示音預設開啟
+let audioCtx = null;        // Web Audio Context（需使用者互動後才能建立）
+let isFirstLoad = true;     // 進入聊天室後第一次載入舊訊息不播音
 
+// ── 提示音（用 Web Audio API 產生，不需要外部音檔）──
+function initAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+}
+function playNotify(){
+  if(!soundOn) return;
+  try{
+    initAudio();
+    // 播放兩聲短促高音「叮咚」
+    const notes = [880, 1100];
+    notes.forEach((freq, i)=>{
+      const osc  = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = audioCtx.currentTime + i * 0.18;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+      osc.start(t);
+      osc.stop(t + 0.22);
+    });
+  } catch(e){}
+}
+function toggleSound(){
+  // 第一次按下時同時初始化 AudioContext（需使用者互動）
+  initAudio();
+  soundOn = !soundOn;
+  const btn = document.getElementById('soundToggle');
+  if(soundOn){
+    btn.textContent = '🔔 提示音';
+    btn.classList.remove('muted');
+    showToast('🔔 提示音已開啟');
+    playNotify(); // 試播一下
+  } else {
+    btn.textContent = '🔕 靜音';
+    btn.classList.add('muted');
+    showToast('🔕 提示音已關閉');
+  }
+}
+
+// ── 進入聊天室 ──
 function enterChat(lang){
-  room = document.getElementById('roomInput').value.trim() || 'room1';
+  // 初始化 AudioContext（需在使用者點擊後）
+  initAudio();
+
+  room   = document.getElementById('roomInput').value.trim() || 'room1';
   myLang = lang;
   const isZh = lang==='zh';
 
@@ -204,6 +265,7 @@ function enterChat(lang){
   document.getElementById('msgInput').placeholder    = isZh?'輸入中文訊息…':'Ketik pesan Indonesia…';
 
   showScreen('chatScreen');
+  isFirstLoad = true;
 
   roomRef   = db.ref('翻譯對話/'+room);
   msgRef    = roomRef.child('messages');
@@ -213,19 +275,19 @@ function enterChat(lang){
     document.getElementById('statusDot').className='status-dot '+(s.val()?'online':'');
   });
 
-  // 監聽訊息新增
+  // 載入現有訊息（不播音）+ 監聽新訊息
   msgRef.on('child_added', snap=>{
-    addBubble(snap.val(), snap.key);
+    const isNew = !isFirstLoad;
+    addBubble(snap.val(), snap.key, isNew);
     document.getElementById('emptyState').style.display='none';
     scrollBottom();
   });
 
-  // 監聽訊息清除（對方清除時，自己畫面也清空）
-  msgRef.on('value', snap=>{
-    if(!snap.exists()){
-      clearLocalMessages();
-    }
-  });
+  // 用 once 判斷「舊訊息載完了」後才開始算新訊息
+  msgRef.once('value', ()=>{ isFirstLoad = false; });
+
+  // 對方清除時，自己畫面也清空
+  msgRef.on('value', snap=>{ if(!snap.exists()) clearLocalMessages(); });
 
   const other = isZh?'id':'zh';
   roomRef.child('typing/'+other).on('value', s=>{
@@ -239,19 +301,26 @@ function enterChat(lang){
   });
 }
 
-function addBubble(d, key){
-  // 避免重複加入
+function addBubble(d, key, playSound){
   if(document.querySelector('[data-key="'+key+'"]')) return;
-  const msgs=document.getElementById('messages');
-  const isSent=(d.from===myLang);
-  const row=document.createElement('div');
-  row.className='msg-row '+(isSent?'sent':'recv')+(d.from==='id'?' id-msg':'');
-  row.dataset.key=key;
+  const msgs   = document.getElementById('messages');
+  const isSent = (d.from===myLang);
+  const row    = document.createElement('div');
+  row.className = 'msg-row '+(isSent?'sent':'recv')+(d.from==='id'?' id-msg':'');
+  row.dataset.key = key;
   const mainText = isSent ? d.original   : d.translated;
   const subText  = isSent ? d.translated : d.original;
-  const time=new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
+  const time = new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
   row.innerHTML=`<div class="bubble"><div class="bubble-main">${esc(mainText)}</div><div class="bubble-trans">${esc(subText)}</div></div><div class="msg-time">${time}</div>`;
   msgs.insertBefore(row, document.getElementById('typingIndicator'));
+
+  // 對方傳來的訊息才播音 + 閃爍
+  if(playSound && !isSent){
+    playNotify();
+    row.classList.add('new-msg');
+    // 震動（Android 支援）
+    if(navigator.vibrate) navigator.vibrate([100, 50, 100]);
+  }
 }
 
 async function sendMessage(){
@@ -285,35 +354,25 @@ async function sendMessage(){
   input.focus();
 }
 
-/* ── 清除功能 ── */
-function askClear(){
-  document.getElementById('clearOverlay').classList.add('show');
-}
-function closeClear(){
-  document.getElementById('clearOverlay').classList.remove('show');
-}
+// ── 清除 ──
+function askClear(){ document.getElementById('clearOverlay').classList.add('show'); }
+function closeClear(){ document.getElementById('clearOverlay').classList.remove('show'); }
 async function confirmClear(){
   closeClear();
-  try {
-    await msgRef.remove();   // 從 Firebase 刪除所有訊息
-    clearLocalMessages();
-    showToast('✅ 對話已清除');
-  } catch(e){
-    showToast('⚠️ 清除失敗，請重試');
-  }
+  try{ await msgRef.remove(); clearLocalMessages(); showToast('✅ 對話已清除'); }
+  catch(e){ showToast('⚠️ 清除失敗，請重試'); }
 }
 function clearLocalMessages(){
-  const msgs = document.getElementById('messages');
-  // 移除所有訊息泡泡，保留 emptyState 和 typingIndicator
-  Array.from(msgs.querySelectorAll('.msg-row')).forEach(r=>r.remove());
+  Array.from(document.getElementById('messages').querySelectorAll('.msg-row')).forEach(r=>r.remove());
   document.getElementById('emptyState').style.display='';
 }
 
 function exitChat(){
   if(typingRef) typingRef.set(false);
-  if(msgRef){ msgRef.off(); }
+  if(msgRef) msgRef.off();
   db.ref('.info/connected').off();
   clearLocalMessages();
+  isFirstLoad = true;
   showScreen('pickScreen');
 }
 
