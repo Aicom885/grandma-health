@@ -332,14 +332,18 @@ async function sendMessage(){
   input.value=''; input.style.height='';
   typingRef.set(false);
 
-  const langpair=myLang==='zh'?'zh-TW|id':'id|zh-TW';
+  const sl = myLang==='zh' ? 'zh-TW' : 'id';
+  const tl = myLang==='zh' ? 'id'    : 'zh-TW';
   let translated='';
   try{
-    const res=await fetch('https://api.mymemory.translated.net/get?q='+encodeURIComponent(text)+'&langpair='+langpair);
-    const data=await res.json();
-    if(data.responseStatus===200||data.responseStatus==='200'){
-      translated=data.responseData.translatedText;
-    } else { throw new Error(); }
+    // 使用 Google 翻譯引擎（品質較佳）
+    const url = 'https://translate.googleapis.com/translate_a/single?client=gtx'
+      + '&sl=' + sl + '&tl=' + tl + '&dt=t&q=' + encodeURIComponent(text);
+    const res  = await fetch(url);
+    const data = await res.json();
+    // 回傳格式：[ [ ["翻譯結果","原文",...], ... ], ... ]
+    translated = data[0].map(seg => seg[0]).join('');
+    if(!translated) throw new Error();
   } catch(e){
     showToast('⚠️ 翻譯失敗，請確認網路連線');
     btn.disabled=false; return;
