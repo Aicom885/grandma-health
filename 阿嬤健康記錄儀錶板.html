@@ -8,16 +8,17 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
     :root {
-      --mint:#3ecf8e; --blue:#3b82f6; --amber:#f59e0b;
-      --rose:#f43f5e; --purple:#8b5cf6;
-      --bg:#0f1117; --surface:#1a1d27; --border:rgba(255,255,255,.08);
-      --text:#e8eaf0; --muted:#7b83a0; --radius:16px;
+      --mint:#3ecf8e; --blue:#5b9cf6; --amber:#f59e0b;
+      --rose:#f43f5e; --purple:#a78bfa;
+      --bg:#0d1b2e; --surface:#122240; --surface2:#183060;
+      --border:rgba(255,255,255,.09);
+      --text:#e8eaf0; --muted:#7a93b4; --radius:16px;
     }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
     body::before{content:'';position:fixed;inset:0;
-      background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(62,207,142,.10) 0%,transparent 60%),
-                 radial-gradient(ellipse 50% 50% at 80% 80%,rgba(59,130,246,.08) 0%,transparent 60%);
+      background:radial-gradient(ellipse 55% 35% at 15% 5%, rgba(62,207,142,.07) 0%,transparent 55%),
+                 radial-gradient(ellipse 45% 40% at 85% 85%,rgba(91,156,246,.06) 0%,transparent 55%);
       pointer-events:none;z-index:0}
 
     /* Loading */
@@ -31,7 +32,8 @@
     /* Header */
     .header{position:relative;z-index:10;padding:24px 32px 18px;
       display:flex;align-items:center;justify-content:space-between;
-      border-bottom:1px solid var(--border);background:rgba(15,17,23,.85);backdrop-filter:blur(12px)}
+      border-bottom:1px solid var(--border);
+      background:rgba(13,27,46,.92);backdrop-filter:blur(14px)}
     .header-left{display:flex;align-items:center;gap:16px}
     .header-icon{width:50px;height:50px;border-radius:14px;
       background:linear-gradient(135deg,var(--mint),var(--blue));
@@ -46,24 +48,6 @@
       font-size:.82rem;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
     .refresh-btn:hover{background:rgba(62,207,142,.28)}
     .refresh-btn:disabled{opacity:.5;cursor:not-allowed}
-
-    /* Notice banner */
-    .notice{position:relative;z-index:1;margin:16px 24px 0;
-      background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);
-      border-radius:12px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
-    .notice.hidden{display:none}
-    .notice-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
-    .notice-body{font-size:.82rem;line-height:1.7;color:#93c5fd}
-    .notice-body strong{color:#60a5fa}
-    .notice-body ol{margin:.4em 0 0 1.2em}
-    .notice-close{margin-left:auto;background:none;border:none;color:#7b83a0;
-      cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0}
-
-    /* Data source badge */
-    .source-badge{display:inline-flex;align-items:center;gap:6px;
-      padding:3px 10px;border-radius:10px;font-size:.72rem;font-weight:600}
-    .badge-live{background:rgba(62,207,142,.2);color:var(--mint)}
-    .badge-cache{background:rgba(245,158,11,.2);color:var(--amber)}
 
     /* Container */
     .container{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:24px 24px 48px}
@@ -172,7 +156,6 @@
       .header-right{flex-direction:row;align-self:stretch;justify-content:space-between}
       .container{padding:18px 12px 40px}
       .charts-grid{grid-template-columns:1fr}
-      .notice{margin:12px 12px 0}
     }
   </style>
 </head>
@@ -197,20 +180,7 @@
   </div>
 </div>
 
-<!-- 說明橫幅（自動更新未啟用時顯示） -->
-<div class="notice" id="setupNotice">
-  <div class="notice-icon">💡</div>
-  <div class="notice-body">
-    <strong>目前顯示的是內嵌快取資料（截至 2026-05-25）</strong>，要讓儀錶板每次開啟自動從 Google Sheets 取得最新資料，請完成一次設定：<br>
-    <ol>
-      <li>開啟 <a href="https://docs.google.com/spreadsheets/d/1NZKNe8wJvNbKRbf3YwR3wAg3iqFrehzYZYGkXdhUR6A" target="_blank" style="color:#60a5fa">阿嬤健康記錄試算表</a></li>
-      <li>上方選單 → <strong>檔案 → 共用 → 發佈到網路</strong></li>
-      <li>選擇「工作表1」→ 格式選「逗號分隔值（.csv）」→ 按「發佈」</li>
-      <li>完成後重新整理此頁面，即可自動更新 ✅</li>
-    </ol>
-  </div>
-  <button class="notice-close" onclick="document.getElementById('setupNotice').classList.add('hidden')" title="關閉">✕</button>
-</div>
+
 
 <div class="container">
   <div class="section-label">📅 最新一天狀況</div>
@@ -387,9 +357,6 @@ async function loadData() {
   // 若即時取資料失敗，使用內嵌快取
   if (!records) {
     records = parseCSV(CACHED_CSV);
-    document.getElementById('setupNotice').classList.remove('hidden');
-  } else {
-    document.getElementById('setupNotice').classList.add('hidden');
   }
 
   renderDashboard(records, isLive);
@@ -596,14 +563,56 @@ function generateWeeklyReport(records) {
     ? `<h4>📝 本週備註</h4><p>${allNotes.map(n=>`・${n}`).join('<br>')}</p>`
     : '';
 
-  // 建議
+  // ── 詳細建議（依各項指標產出具體建議）──
   const suggests = [];
-  if (hardDays >= 2 || bowelPct < 60) suggests.push('多補充蔬菜、水果及水分，有助腸道蠕動改善便秘。');
-  if (avgWater < 600 && noWaterDays < totalDays) suggests.push('每次用餐後提醒喝一杯水（約 200ml），慢慢養成習慣。');
-  if (walkPct < 60) suggests.push('即使在室內，每天試著走路 10～15 分鐘，對體力與消化都有幫助。');
-  if (medPct < 80)  suggests.push('可以設定手機提醒，確保每天按時服藥。');
-  if (badDays >= 2) suggests.push('多陪伴聊天或做喜歡的事，保持心情愉快。');
-  if (suggests.length === 0) suggests.push('本週整體狀況良好，繼續保持現有的生活習慣！');
+
+  // 排便相關
+  if (bowelPct === 0) {
+    suggests.push(`<strong>排便</strong>：本週完全無排便記錄，請密切觀察是否有腹脹、腹痛或不適感，若超過 3 天未排便建議諮詢醫師。`);
+  } else if (bowelPct < 50) {
+    suggests.push(`<strong>排便</strong>：本週排便頻率偏低（${bowelDays}/${totalDays} 天），可試著每天早餐後讓阿嬤坐馬桶約 10 分鐘，利用胃結腸反射促進排便。`);
+  } else if (hardDays >= 2) {
+    suggests.push(`<strong>硬便改善</strong>：本週出現 ${hardDays} 天硬便，建議每日增加深色蔬菜（如菠菜、地瓜葉）及水果（如香蕉、火龍果）攝取，並確保喝水量達 800ml 以上。`);
+  } else if (softDays >= 3) {
+    suggests.push(`<strong>軟便留意</strong>：本週軟便天數較多，注意飲食是否有油膩或刺激性食物，若伴隨腹痛請就醫。`);
+  }
+
+  // 喝水相關
+  if (noWaterDays >= Math.ceil(totalDays * 0.5)) {
+    suggests.push(`<strong>水分補充</strong>：本週超過一半天數未記錄喝水，老年人口渴感較遲鈍，建議定時給水而非等到口渴，早中晚飯前各一杯（約 200ml）為基本目標。`);
+  } else if (avgWater < 400) {
+    suggests.push(`<strong>水分嚴重不足</strong>：日均僅 ${avgWater}ml，遠低於老年人建議的 1000～1500ml。長期水分不足易導致便秘、尿道感染及腎功能下降，請積極補充。`);
+  } else if (avgWater < 700) {
+    suggests.push(`<strong>水分仍需加強</strong>：日均 ${avgWater}ml，建議目標提升至 800ml 以上。可準備固定容量的水壺，方便追蹤每日飲水量。`);
+  }
+
+  // 走路相關
+  if (walkPct < 40) {
+    suggests.push(`<strong>活動量嚴重不足</strong>：本週僅 ${walkDays} 天有走路。長期臥床或久坐會加速肌肉流失並影響腸胃蠕動，建議每天至少扶著助行器在室內走 2～3 趟，每趟 5 分鐘即可。`);
+  } else if (walkPct < 70) {
+    suggests.push(`<strong>活動量可再提升</strong>：建議天氣好時帶阿嬤到戶外曬太陽走走，日照有助維生素 D 合成與鈣質吸收，對骨骼與情緒都有益。`);
+  } else if (walkPct === 100) {
+    suggests.push(`<strong>活動表現優秀</strong>：每天都有走路，非常值得鼓勵！可視體力逐漸延長走路時間或加入簡單的手部伸展操。`);
+  }
+
+  // 用藥相關
+  if (medPct < 60) {
+    suggests.push(`<strong>用藥達成率偏低</strong>：本週有 ${totalDays - medDays} 天未記錄服藥，建議將藥盒放在餐桌顯眼處，或使用分藥盒按週分裝，方便確認是否服用。`);
+  } else if (medPct < 85) {
+    suggests.push(`<strong>用藥</strong>：仍有少數天未完整記錄，可在藥盒旁放一張記錄貼，服藥後立即打勾，減少遺漏。`);
+  }
+
+  // 精神相關
+  if (badDays >= 3) {
+    suggests.push(`<strong>情緒關懷</strong>：本週有 ${badDays} 天精神狀態不佳，老年人情緒低落有時與疼痛、睡眠品質或孤獨感有關，建議多陪伴聊天，了解是否有身體不適未說出口。`);
+  } else if (badDays >= 1 && allNotes.some(n => /痛|不舒服|難受/.test(n))) {
+    suggests.push(`<strong>身心連動</strong>：備註中有提到身體不適，這可能影響精神狀態，建議追蹤不適症狀是否持續，必要時安排就診。`);
+  }
+
+  // 整體良好
+  if (suggests.length === 0) {
+    suggests.push(`本週各項指標整體${good('表現良好')}！排便規律、水分充足、活動達標，請繼續維持這樣的生活節奏，並保持每天的健康記錄習慣。`);
+  }
 
   const html = `
     <h4>💩 排便狀況</h4><p>${bowelText}</p>
@@ -612,7 +621,7 @@ function generateWeeklyReport(records) {
     <h4>💊 用藥情形</h4><p>${medText}</p>
     <h4>😊 精神與情緒</h4><p>${moodText}</p>
     ${notesSection}
-    <div class="suggest">💡 本週建議：<br>${suggests.map((s,i)=>`${i+1}. ${s}`).join('<br>')}</div>
+    <div class="suggest">💡 本週照護建議<br><br>${suggests.map((s,i)=>`<span style="opacity:.6">${i+1}.</span> ${s}`).join('<br><br>')}</div>
   `;
   showWeeklyReport(html);
 }
