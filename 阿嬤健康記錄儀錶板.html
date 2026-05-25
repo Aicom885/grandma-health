@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🏥 阿嬤健康記錄儀錶板</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --mint:#3ecf8e; --blue:#3b82f6; --amber:#f59e0b;
+      --rose:#f43f5e; --purple:#8b5cf6;
+      --bg:#0f1117; --surface:#1a1d27; --border:rgba(255,255,255,.08);
+      --text:#e8eaf0; --muted:#7b83a0; --radius:16px;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    body::before{content:'';position:fixed;inset:0;
+      background:radial-gradient(ellipse 60% 40% at 20% 10%,rgba(62,207,142,.10) 0%,transparent 60%),
+                 radial-gradient(ellipse 50% 50% at 80% 80%,rgba(59,130,246,.08) 0%,transparent 60%);
+      pointer-events:none;z-index:0}
+
+    /* Loading */
+    #loadingOverlay{position:fixed;inset:0;background:var(--bg);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;z-index:9999;gap:20px}
+    .pulse-ring{width:60px;height:60px;border-radius:50%;border:3px solid transparent;
+      border-top-color:var(--mint);border-right-color:var(--blue);animation:spin .9s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-label{color:var(--muted);font-size:.9rem}
+
+    /* Header */
+    .header{position:relative;z-index:10;padding:24px 32px 18px;
+      display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--border);background:rgba(15,17,23,.85);backdrop-filter:blur(12px)}
+    .header-left{display:flex;align-items:center;gap:16px}
+    .header-icon{width:50px;height:50px;border-radius:14px;
+      background:linear-gradient(135deg,var(--mint),var(--blue));
+      display:flex;align-items:center;justify-content:center;font-size:1.5rem;
+      box-shadow:0 0 20px rgba(62,207,142,.3)}
+    .header-title{font-size:1.4rem;font-weight:700;letter-spacing:-.02em}
+    .header-subtitle{color:var(--muted);font-size:.8rem;margin-top:3px}
+    .header-right{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+    .last-updated{font-family:'DM Mono',monospace;font-size:.72rem;color:var(--muted)}
+    .refresh-btn{background:rgba(62,207,142,.15);border:1px solid rgba(62,207,142,.35);
+      color:var(--mint);padding:7px 16px;border-radius:20px;cursor:pointer;
+      font-size:.82rem;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
+    .refresh-btn:hover{background:rgba(62,207,142,.28)}
+    .refresh-btn:disabled{opacity:.5;cursor:not-allowed}
+
+    /* Notice banner */
+    .notice{position:relative;z-index:1;margin:16px 24px 0;
+      background:rgba(59,130,246,.12);border:1px solid rgba(59,130,246,.3);
+      border-radius:12px;padding:14px 18px;display:flex;gap:12px;align-items:flex-start}
+    .notice.hidden{display:none}
+    .notice-icon{font-size:1.2rem;flex-shrink:0;margin-top:1px}
+    .notice-body{font-size:.82rem;line-height:1.7;color:#93c5fd}
+    .notice-body strong{color:#60a5fa}
+    .notice-body ol{margin:.4em 0 0 1.2em}
+    .notice-close{margin-left:auto;background:none;border:none;color:#7b83a0;
+      cursor:pointer;font-size:1rem;padding:0 4px;flex-shrink:0}
+
+    /* Data source badge */
+    .source-badge{display:inline-flex;align-items:center;gap:6px;
+      padding:3px 10px;border-radius:10px;font-size:.72rem;font-weight:600}
+    .badge-live{background:rgba(62,207,142,.2);color:var(--mint)}
+    .badge-cache{background:rgba(245,158,11,.2);color:var(--amber)}
+
+    /* Container */
+    .container{position:relative;z-index:1;max-width:1280px;margin:0 auto;padding:24px 24px 48px}
+    .section-label{font-size:.7rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;
+      color:var(--muted);margin-bottom:14px;margin-top:32px;display:flex;align-items:center;gap:8px}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+    /* Today */
+    .today-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px}
+    .today-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:18px 14px;text-align:center;transition:transform .2s,box-shadow .2s;
+      animation:fadeUp .4s ease both}
+    .today-card:hover{transform:translateY(-3px);box-shadow:0 8px 24px rgba(0,0,0,.35)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+    .today-icon{font-size:1.6rem;margin-bottom:8px}
+    .today-label{font-size:.72rem;color:var(--muted);margin-bottom:5px}
+    .today-value{font-size:1.05rem;font-weight:700}
+    .good{color:var(--mint)}.ok{color:var(--amber)}.bad{color:var(--rose)}
+    .info{color:var(--blue)}.mono{font-family:'DM Mono',monospace;font-size:.88rem;color:var(--text)}
+
+    /* KPI */
+    .kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px}
+    .kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);
+      padding:20px 18px;position:relative;overflow:hidden;animation:fadeUp .4s ease both}
+    .kpi-card::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;
+      border-radius:var(--radius) var(--radius) 0 0}
+    .c-mint::after{background:var(--mint)}.c-green::after{background:#22c55e}
+    .c-amber::after{background:var(--amber)}.c-blue::after{background:var(--blue)}
+    .c-purple::after{background:var(--purple)}
+    .kpi-emoji{font-size:1.4rem;margin-bottom:10px}
+    .kpi-label{font-size:.76rem;color:var(--muted);margin-bottom:4px}
+    .kpi-value{font-size:2rem;font-weight:700;line-height:1}
+    .kpi-value span{font-size:.9rem;color:var(--muted);font-weight:400}
+    .kpi-sub{font-size:.73rem;color:var(--muted);margin-top:4px}
+
+    /* Charts */
+    .charts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:16px}
+    .chart-card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:20px;animation:fadeUp .4s ease both}
+    .chart-title{font-size:.88rem;font-weight:600;margin-bottom:16px}
+    .chart-wrap{position:relative;height:210px}
+
+    /* Table */
+    .table-card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);padding:20px;overflow-x:auto;animation:fadeUp .4s ease both}
+    table{width:100%;border-collapse:collapse;font-size:.84rem}
+    thead th{padding:10px 14px;text-align:left;font-size:.7rem;font-weight:600;
+      letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+      border-bottom:1px solid var(--border);white-space:nowrap}
+    tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+    tbody tr:last-child{border-bottom:none}
+    tbody tr:hover{background:rgba(255,255,255,.04)}
+    td{padding:10px 14px;white-space:nowrap}
+    .td-date{font-family:'DM Mono',monospace;font-size:.78rem;color:var(--muted)}
+    .chip{display:inline-flex;align-items:center;padding:2px 9px;
+      border-radius:10px;font-size:.73rem;font-weight:600}
+    .chip-yes{background:rgba(62,207,142,.18);color:var(--mint)}
+    .chip-no{background:rgba(244,63,94,.15);color:var(--rose)}
+    .chip-normal{background:rgba(59,130,246,.18);color:#60a5fa}
+    .chip-soft{background:rgba(245,158,11,.18);color:var(--amber)}
+    .chip-hard{background:rgba(244,63,94,.18);color:var(--rose)}
+    .chip-good{background:rgba(62,207,142,.18);color:var(--mint)}
+    .chip-ok{background:rgba(245,158,11,.15);color:var(--amber)}
+    .chip-bad{background:rgba(244,63,94,.18);color:var(--rose)}
+
+    .footer{text-align:center;padding:28px 24px;color:var(--muted);
+      font-size:.73rem;letter-spacing:.03em;border-top:1px solid var(--border)}
+
+    @media(max-width:640px){
+      .header{padding:18px 16px;flex-direction:column;gap:14px}
+      .header-right{flex-direction:row;align-self:stretch;justify-content:space-between}
+      .container{padding:18px 12px 40px}
+      .charts-grid{grid-template-columns:1fr}
+      .notice{margin:12px 12px 0}
+    }
+  </style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="pulse-ring"></div>
+  <div class="loading-label" id="loadingMsg">正在讀取資料…</div>
+</div>
+
+<div class="header">
+  <div class="header-left">
+    <div class="header-icon">🏥</div>
+    <div>
+      <div class="header-title">阿嬤健康記錄</div>
+      <div class="header-subtitle">健康狀況監控儀錶板</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="last-updated" id="lastUpdated">讀取中…</div>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadData()">🔄 重新整理</button>
+  </div>
+</div>
+
+<!-- 說明橫幅（自動更新未啟用時顯示） -->
+<div class="notice" id="setupNotice">
+  <div class="notice-icon">💡</div>
+  <div class="notice-body">
+    <strong>目前顯示的是內嵌快取資料（截至 2026-05-25）</strong>，要讓儀錶板每次開啟自動從 Google Sheets 取得最新資料，請完成一次設定：<br>
+    <ol>
+      <li>開啟 <a href="https://docs.google.com/spreadsheets/d/1NZKNe8wJvNbKRbf3YwR3wAg3iqFrehzYZYGkXdhUR6A" target="_blank" style="color:#60a5fa">阿嬤健康記錄試算表</a></li>
+      <li>上方選單 → <strong>檔案 → 共用 → 發佈到網路</strong></li>
+      <li>選擇「工作表1」→ 格式選「逗號分隔值（.csv）」→ 按「發佈」</li>
+      <li>完成後重新整理此頁面，即可自動更新 ✅</li>
+    </ol>
+  </div>
+  <button class="notice-close" onclick="document.getElementById('setupNotice').classList.add('hidden')" title="關閉">✕</button>
+</div>
+
+<div class="container">
+  <div class="section-label">📅 最新一天狀況</div>
+  <div class="today-grid" id="todayGrid"></div>
+
+  <div class="section-label">📊 近 14 天統計</div>
+  <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="section-label">📈 健康趨勢</div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">💧 每日喝水量（ml）</div>
+      <div class="chart-wrap"><canvas id="waterChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">😊 精神狀態趨勢</div>
+      <div class="chart-wrap"><canvas id="moodChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">🚶 走路 &amp; 💊 用藥達成</div>
+      <div class="chart-wrap"><canvas id="walkMedChart"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">💩 大便性狀分布（全紀錄）</div>
+      <div class="chart-wrap"><canvas id="stoolChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-label">📋 最近 20 筆記錄</div>
+  <div class="table-card">
+    <table>
+      <thead>
+        <tr>
+          <th>日期</th><th>排便</th><th>性狀</th><th>走路</th>
+          <th>用藥</th><th>精神</th><th>喝水(ml)</th><th>備註</th>
+        </tr>
+      </thead>
+      <tbody id="recordsBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<div class="footer">
+  資料來源：Google Sheets「阿嬤健康記錄」&nbsp;·&nbsp; 僅讀取，不寫入
+</div>
+
+<script>
+/* ══════════════════════════════════════════
+   設定
+══════════════════════════════════════════ */
+const SHEET_ID = '1NZKNe8wJvNbKRbf3YwR3wAg3iqFrehzYZYGkXdhUR6A';
+// 發佈到網路後的 CSV 網址（無需登入，允許 CORS）
+const PUBLISHED_CSV = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/pub?output=csv&gid=0`;
+
+/* ══════════════════════════════════════════
+   內嵌快取資料（截至 2026-05-25，作為備用）
+══════════════════════════════════════════ */
+const CACHED_CSV = `日期,排便,大便性狀,走路,用藥,精神,喝水(ml),備註
+2026-04-23,沒有,軟,有,有,好,100,
+2026-04-23,沒有,軟,有,有,好,100,
+2026-04-22,有,正常,沒有,沒有,好,100,
+2026-04-23,有,正常,有,有,,100,
+2026-04-23,沒有,硬,沒有,有,普通,,
+2026-04-23,有,正常,有,沒有,好,125,肚子痛
+2026-04-23,沒有,正常,沒有,沒有,普通,50,肚子痛
+2026-04-24,沒有,硬,有,有,不好,,
+2026-04-24,沒有,硬,有,有,不好,,肚子不舒服
+2026-04-24,沒有,硬,有,有,好,500,肚子不舒服很久了
+2026-04-24,有,正常,沒有,有,好,560,
+2026-04-24,沒有,硬,沒有,沒有,不好,560,
+2026-04-25,沒有,正常,有,沒有,好,666,
+2026-04-25,有,,有,有,好,,
+2026-04-25,有,軟,有,有,普通,680,
+2026-04-26,有,硬,沒有,沒有,普通,100,
+2026-04-27,有,正常,有,沒有,普通,120,
+2026-04-28,有,正常,有,沒有,不好,,
+2026-04-29,,正常,有,有,普通,900,
+2026-04-29,沒有,正常,沒有,沒有,普通,200,
+2026-04-30,有,正常,沒有,沒有,普通,200,
+2026-04-30,有,正常,有,沒有,普通,800,
+2026-05-02,沒有,正常,有,沒有,好,100,
+2026-05-04,有,正常,有,沒有,普通,123,
+2026-05-04,有,正常,有,有,好,543,
+2026-05-04,有,正常,有,有,好,600,
+2026-05-04,有,正常,有,有,好,600,
+2026-05-05,沒有,,有,有,好,500,
+2026-05-06,有,正常,有,有,好,500,
+2026-05-07,有,正常,有,沒有,普通,100,
+2026-05-07,有,正常,有,沒有,普通,500,
+2026-05-08,沒有,正常,有,有,普通,100,
+2026-05-08,沒有,,有,沒有,普通,500,
+2026-05-09,沒有,正常,有,有,普通,100,
+2026-05-09,有,正常,有,有,普通,500,
+2026-05-10,有,正常,有,有,好,500,
+2026-05-11,有,正常,有,有,普通,500,
+2026-05-12,沒有,,有,有,普通,500,
+2026-05-13,有,正常,有,有,普通,500,
+2026-05-15,有,正常,有,沒有,普通,,
+2026-05-15,有,正常,有,有,好,500,
+2026-05-15,沒有,正常,有,有,好,500,
+2026-05-16,有,軟,有,有,好,500,
+2026-05-17,,有,有,普通,500,
+2026-05-17,沒有,,有,有,普通,500,
+2026-05-18,有,正常,有,有,普通,500,
+2026-05-19,有,軟,有,有,普通,500,
+2026-05-20,有,正常,有,有,普通,300,
+2026-05-20,有,硬,有,有,普通,400,吃很少
+2026-05-20,沒有,硬,有,有,好,250,
+2026-05-20,有,正常,有,有,普通,50,
+2026-05-20,有,正常,有,沒有,普通,500,
+2026-05-21,沒有,,有,沒有,好,700,
+2026-05-22,有,正常,有,有,普通,500,
+2026-05-23,有,硬,有,沒有,普通,500,
+2026-05-25,沒有,,有,有,普通,500,`;
+
+let charts = {};
+
+/* ══════════════════════════════════════════
+   主流程
+══════════════════════════════════════════ */
+async function loadData() {
+  showLoading(true, '嘗試從 Google Sheets 取得最新資料…');
+  document.getElementById('refreshBtn').disabled = true;
+
+  let records = null;
+  let isLive  = false;
+
+  // 嘗試從「發佈到網路」的 CSV 取得即時資料
+  try {
+    const res = await fetch(PUBLISHED_CSV, { cache: 'no-store' });
+    if (res.ok) {
+      const csv = await res.text();
+      const parsed = parseCSV(csv);
+      if (parsed.length > 0) { records = parsed; isLive = true; }
+    }
+  } catch (_) { /* 靜默失敗，改用快取 */ }
+
+  // 若即時取資料失敗，使用內嵌快取
+  if (!records) {
+    records = parseCSV(CACHED_CSV);
+    document.getElementById('setupNotice').classList.remove('hidden');
+  } else {
+    document.getElementById('setupNotice').classList.add('hidden');
+  }
+
+  renderDashboard(records, isLive);
+  document.getElementById('lastUpdated').textContent =
+    (isLive ? '🟢 即時 · ' : '🟡 快取 · ') +
+    new Date().toLocaleString('zh-TW', { timeZone:'Asia/Taipei' });
+
+  showLoading(false);
+  document.getElementById('refreshBtn').disabled = false;
+}
+
+/* ══════════════════════════════════════════
+   CSV 解析
+══════════════════════════════════════════ */
+function parseCSV(text) {
+  const lines = text.trim().split('\n').filter(l => l.trim());
+  if (lines.length < 2) return [];
+
+  const headers = splitLine(lines[0]).map(h => h.replace(/^"|"$/g,'').trim());
+  const idx = {
+    date:  findCol(headers,['日期']),
+    bowel: findCol(headers,['排便']),
+    stool: findCol(headers,['大便性狀','性狀']),
+    walk:  findCol(headers,['走路']),
+    med:   findCol(headers,['用藥']),
+    mood:  findCol(headers,['精神']),
+    water: findCol(headers,['喝水']),
+    note:  findCol(headers,['備註']),
+  };
+
+  return lines.slice(1).map(line => {
+    const c = splitLine(line).map(v => v.replace(/^"|"$/g,'').trim());
+    const raw = c[idx.date] || '';
+    if (!/\d{4}/.test(raw)) return null;
+    const d = raw.replace(/\//g,'-')
+      .replace(/(\d{4})-(\d{1,2})-(\d{1,2}).*/,(_,y,m,dd)=>`${y}-${m.padStart(2,'0')}-${dd.padStart(2,'0')}`);
+    const w = (c[idx.water]||'').replace(/[^\d.]/g,'');
+    return { date:d, bowel:c[idx.bowel]||'', stool:c[idx.stool]||'',
+             walk:c[idx.walk]||'', medication:c[idx.med]||'',
+             mood:c[idx.mood]||'', water:w?Number(w):null, note:c[idx.note]||'' };
+  }).filter(r => r && /\d{4}-\d{2}-\d{2}/.test(r.date));
+}
+
+function findCol(hs, names) {
+  for (const n of names) { const i=hs.findIndex(h=>h.includes(n)); if(i>=0) return i; }
+  return 0;
+}
+
+function splitLine(line) {
+  const r=[]; let cur=''; let q=false;
+  for (let i=0;i<line.length;i++) {
+    const c=line[i];
+    if(c==='"'){ if(q&&line[i+1]==='"'){cur+='"';i++;}else q=!q; }
+    else if(c===','&&!q){ r.push(cur);cur=''; }
+    else cur+=c;
+  }
+  r.push(cur); return r;
+}
+
+/* ══════════════════════════════════════════
+   渲染
+══════════════════════════════════════════ */
+function renderDashboard(records, isLive) {
+  records.sort((a,b)=>b.date.localeCompare(a.date));
+  const ud   = [...new Set(records.map(r=>r.date))];
+  const l14  = ud.slice(0,14).reverse();
+  renderToday(ud[0], records.filter(r=>r.date===ud[0]));
+  renderKPI(records, l14);
+  renderCharts(records, l14);
+  renderTable(records.slice(0,20));
+}
+
+function renderToday(date, recs) {
+  const w    = recs.reduce((s,r)=>s+(Number(r.water)||0),0);
+  const bw   = recs.some(r=>r.bowel==='有');
+  const wk   = recs.some(r=>r.walk==='有');
+  const md   = recs.some(r=>r.medication==='有');
+  const mood = ['好','普通','不好'].find(m=>recs.some(r=>r.mood===m))||'-';
+  const mE   = {'好':'😊','普通':'😐','不好':'😞'};
+  const mC   = {'好':'good','普通':'ok','不好':'bad'};
+  document.getElementById('todayGrid').innerHTML = [
+    ['📅','最新日期',`<span class="mono">${date}</span>`],
+    ['💩','排便',    `<span class="${bw?'good':'bad'}">${bw?'✓ 有':'✗ 無'}</span>`],
+    ['🚶','走路',    `<span class="${wk?'good':'bad'}">${wk?'✓ 有':'✗ 無'}</span>`],
+    ['💊','用藥',    `<span class="${md?'good':'ok'}">${md?'✓ 有':'✗ 無'}</span>`],
+    [mE[mood]||'❓','精神',`<span class="${mC[mood]||''}">${mood}</span>`],
+    ['💧','喝水量',  `<span class="info">${w>0?w+' ml':'－'}</span>`],
+  ].map((([icon,label,val],i)=>`
+    <div class="today-card" style="animation-delay:${i*.05}s">
+      <div class="today-icon">${icon}</div>
+      <div class="today-label">${label}</div>
+      <div class="today-value">${val}</div>
+    </div>`)).join('');
+}
+
+function renderKPI(records, l14) {
+  const r14 = records.filter(r=>l14.includes(r.date));
+  const n   = l14.length;
+  const by  = d=>r14.filter(r=>r.date===d);
+  const pct = v=>n>0?Math.round(v/n*100):0;
+  const bD  = l14.filter(d=>by(d).some(r=>r.bowel==='有')).length;
+  const wD  = l14.filter(d=>by(d).some(r=>r.walk==='有')).length;
+  const mD  = l14.filter(d=>by(d).some(r=>r.medication==='有')).length;
+  const gD  = l14.filter(d=>by(d).some(r=>r.mood==='好')).length;
+  const wv  = l14.map(d=>by(d).reduce((s,r)=>s+(Number(r.water)||0),0)).filter(v=>v>0);
+  const aw  = wv.length?Math.round(wv.reduce((s,v)=>s+v,0)/wv.length):0;
+  document.getElementById('kpiGrid').innerHTML = [
+    ['c-mint','💩','排便天數',bD,n,'達成率 '+pct(bD)+'%'],
+    ['c-green','🚶','走路天數',wD,n,'達成率 '+pct(wD)+'%'],
+    ['c-amber','💊','用藥天數',mD,n,'達成率 '+pct(mD)+'%'],
+    ['c-blue','💧','日均喝水',aw,'ml','近 '+n+' 天平均'],
+    ['c-purple','😊','精神好天數',gD,n,'佔比 '+pct(gD)+'%'],
+  ].map(([cls,e,l,v,u,s],i)=>`
+    <div class="kpi-card ${cls}" style="animation-delay:${i*.06}s">
+      <div class="kpi-emoji">${e}</div>
+      <div class="kpi-label">${l}</div>
+      <div class="kpi-value">${v}<span>／${u}</span></div>
+      <div class="kpi-sub">${s}</div>
+    </div>`).join('');
+}
+
+function renderCharts(records, l14) {
+  Object.values(charts).forEach(c=>c.destroy()); charts={};
+  const lbs = l14.map(d=>d.slice(5));
+  const by  = d=>records.filter(r=>r.date===d);
+  const go  = (extra={})=>({responsive:true,maintainAspectRatio:false,...extra});
+  const gx  = {grid:{color:'rgba(255,255,255,.05)'},ticks:{color:'#7b83a0'}};
+
+  const wd = l14.map(d=>by(d).reduce((s,r)=>s+(Number(r.water)||0),0));
+  charts.water=new Chart(document.getElementById('waterChart'),{type:'bar',
+    data:{labels:lbs,datasets:[{data:wd,
+      backgroundColor:wd.map(v=>v>=500?'rgba(59,130,246,.8)':v>=300?'rgba(59,130,246,.45)':'rgba(244,63,94,.4)'),
+      borderRadius:5,borderSkipped:false}]},
+    options:go({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw} ml`}}},
+      scales:{y:{beginAtZero:true,...gx},x:{grid:{display:false},ticks:{color:'#7b83a0',font:{size:11}}}}})
+  });
+
+  const ms={'好':3,'普通':2,'不好':1};
+  const md=l14.map(d=>{const m=['好','普通','不好'].find(x=>by(d).some(r=>r.mood===x));return m?ms[m]:null;});
+  charts.mood=new Chart(document.getElementById('moodChart'),{type:'line',
+    data:{labels:lbs,datasets:[{data:md,borderColor:'#8b5cf6',backgroundColor:'rgba(139,92,246,.12)',
+      borderWidth:2.5,fill:true,tension:.35,spanGaps:true,
+      pointBackgroundColor:md.map(v=>v===3?'#3ecf8e':v===2?'#f59e0b':'#f43f5e'),
+      pointRadius:6,pointHoverRadius:8}]},
+    options:go({plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>['','不好','普通','好'][c.raw||0]||'-'}}},
+      scales:{y:{min:.5,max:3.5,ticks:{stepSize:1,color:'#7b83a0',
+        callback:v=>(['','不好','普通','好'][v]||'')},grid:{color:'rgba(255,255,255,.05)'}},
+        x:{grid:{display:false},ticks:{color:'#7b83a0',font:{size:11}}}}})
+  });
+
+  charts.walkMed=new Chart(document.getElementById('walkMedChart'),{type:'bar',
+    data:{labels:lbs,datasets:[
+      {label:'走路',data:l14.map(d=>by(d).some(r=>r.walk==='有')?1:0),backgroundColor:'rgba(62,207,142,.75)',borderRadius:4},
+      {label:'用藥',data:l14.map(d=>by(d).some(r=>r.medication==='有')?1:0),backgroundColor:'rgba(245,158,11,.75)',borderRadius:4}
+    ]},
+    options:go({plugins:{legend:{labels:{color:'#7b83a0',font:{size:11}}}},
+      scales:{y:{min:0,max:1.3,ticks:{stepSize:1,color:'#7b83a0',callback:v=>v===1?'有':v===0?'無':''},
+        grid:{color:'rgba(255,255,255,.05)'}},x:{grid:{display:false},ticks:{color:'#7b83a0',font:{size:11}}}}})
+  });
+
+  const sc={'正常':0,'軟':0,'硬':0,'未記錄':0};
+  records.forEach(r=>{if(sc[r.stool]!==undefined)sc[r.stool]++;else sc['未記錄']++;});
+  charts.stool=new Chart(document.getElementById('stoolChart'),{type:'doughnut',
+    data:{labels:Object.keys(sc),datasets:[{data:Object.values(sc),
+      backgroundColor:['rgba(59,130,246,.8)','rgba(62,207,142,.8)','rgba(244,63,94,.8)','rgba(100,100,120,.5)'],
+      borderColor:'var(--surface)',borderWidth:3}]},
+    options:go({plugins:{legend:{position:'right',labels:{color:'#7b83a0',font:{size:12},padding:14}}},cutout:'55%'})
+  });
+}
+
+function renderTable(records) {
+  const chip=(v,map)=>{const c=map[v];return c?`<span class="chip ${c}">${v}</span>`:`<span style="color:var(--muted)">－</span>`;};
+  document.getElementById('recordsBody').innerHTML=records.map(r=>`
+    <tr>
+      <td class="td-date">${r.date}</td>
+      <td>${chip(r.bowel,{'有':'chip-yes','沒有':'chip-no'})}</td>
+      <td>${chip(r.stool,{'正常':'chip-normal','軟':'chip-soft','硬':'chip-hard'})}</td>
+      <td>${chip(r.walk,{'有':'chip-yes','沒有':'chip-no'})}</td>
+      <td>${chip(r.medication,{'有':'chip-yes','沒有':'chip-no'})}</td>
+      <td>${chip(r.mood,{'好':'chip-good','普通':'chip-ok','不好':'chip-bad'})}</td>
+      <td style="font-family:'DM Mono',monospace;font-size:.8rem">${r.water??'－'}</td>
+      <td style="color:var(--muted);font-size:.78rem">${r.note||''}</td>
+    </tr>`).join('');
+}
+
+function showLoading(show, msg) {
+  if(msg) document.getElementById('loadingMsg').textContent=msg;
+  document.getElementById('loadingOverlay').style.display=show?'flex':'none';
+}
+
+loadData();
+</script>
+</body>
+</html>
