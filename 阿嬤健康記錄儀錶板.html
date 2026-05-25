@@ -129,6 +129,41 @@
     .chip-ok{background:rgba(245,158,11,.15);color:var(--amber)}
     .chip-bad{background:rgba(244,63,94,.18);color:var(--rose)}
 
+    /* ── 週報卡片 ── */
+    .weekly-card{background:var(--surface);border:1px solid var(--border);
+      border-radius:var(--radius);overflow:hidden;animation:fadeUp .4s ease both}
+    .weekly-header{
+      background:linear-gradient(135deg,rgba(139,92,246,.25) 0%,rgba(59,130,246,.2) 100%);
+      border-bottom:1px solid var(--border);
+      padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+    .weekly-title-group{display:flex;align-items:center;gap:12px}
+    .weekly-icon{font-size:1.6rem}
+    .weekly-title{font-size:1.05rem;font-weight:700}
+    .weekly-range{font-family:'DM Mono',monospace;font-size:.75rem;color:#a5b4fc;margin-top:3px}
+    .weekly-badge{padding:4px 12px;border-radius:12px;font-size:.72rem;font-weight:600;
+      background:rgba(139,92,246,.25);border:1px solid rgba(139,92,246,.4);color:#c4b5fd}
+    .weekly-body{padding:24px}
+    .weekly-loading{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:.88rem;padding:8px 0}
+    .weekly-loading .mini-spin{width:18px;height:18px;border-radius:50%;border:2px solid transparent;
+      border-top-color:var(--purple);animation:spin .7s linear infinite;flex-shrink:0}
+    .weekly-content{line-height:1.85;font-size:.9rem;color:var(--text)}
+    .weekly-content h4{font-size:.82rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+      color:var(--muted);margin:18px 0 6px;display:flex;align-items:center;gap:6px}
+    .weekly-content h4:first-child{margin-top:0}
+    .weekly-content p{color:#cbd5e1;margin-bottom:4px}
+    .weekly-content .highlight{color:var(--mint);font-weight:600}
+    .weekly-content .warn{color:var(--amber);font-weight:600}
+    .weekly-content .alert{color:var(--rose);font-weight:600}
+    .weekly-content .suggest{
+      background:rgba(139,92,246,.1);border-left:3px solid var(--purple);
+      border-radius:0 8px 8px 0;padding:10px 14px;margin-top:12px;
+      font-size:.85rem;color:#c4b5fd;line-height:1.7}
+    .weekly-error{color:var(--rose);font-size:.85rem;padding:8px 0}
+    .regen-btn{margin-top:16px;background:rgba(139,92,246,.15);border:1px solid rgba(139,92,246,.35);
+      color:#c4b5fd;padding:8px 18px;border-radius:20px;cursor:pointer;
+      font-size:.82rem;font-family:'Noto Sans TC',sans-serif;transition:all .2s}
+    .regen-btn:hover{background:rgba(139,92,246,.28)}
+
     .footer{text-align:center;padding:28px 24px;color:var(--muted);
       font-size:.73rem;letter-spacing:.03em;border-top:1px solid var(--border)}
 
@@ -183,6 +218,28 @@
 
   <div class="section-label">📊 近 14 天統計</div>
   <div class="kpi-grid" id="kpiGrid"></div>
+
+  <div class="section-label">📋 本週健康週報</div>
+  <div class="weekly-card" id="weeklyCard">
+    <div class="weekly-header">
+      <div class="weekly-title-group">
+        <div class="weekly-icon">📰</div>
+        <div>
+          <div class="weekly-title">健康週報</div>
+          <div class="weekly-range" id="weeklyRange">計算中…</div>
+        </div>
+      </div>
+      <div class="weekly-badge" id="weeklyBadge">每週一產出</div>
+    </div>
+    <div class="weekly-body">
+      <div class="weekly-loading" id="weeklyLoading">
+        <div class="mini-spin"></div>
+        <span>AI 正在分析本週健康資料，請稍候…</span>
+      </div>
+      <div class="weekly-content" id="weeklyContent" style="display:none"></div>
+      <div class="weekly-error" id="weeklyError" style="display:none"></div>
+    </div>
+  </div>
 
   <div class="section-label">📈 健康趨勢</div>
   <div class="charts-grid">
@@ -396,13 +453,185 @@ function splitLine(line) {
    渲染
 ══════════════════════════════════════════ */
 function renderDashboard(records, isLive) {
+  window._allRecords = records;   // 供週報重新產生用
   records.sort((a,b)=>b.date.localeCompare(a.date));
   const ud   = [...new Set(records.map(r=>r.date))];
   const l14  = ud.slice(0,14).reverse();
   renderToday(ud[0], records.filter(r=>r.date===ud[0]));
   renderKPI(records, l14);
+  generateWeeklyReport(records);   // ← 週報
   renderCharts(records, l14);
   renderTable(records.slice(0,20));
+}
+
+/* ══════════════════════════════════════════
+   週報：計算週期 & 純 JS 自動分析（不需 API）
+══════════════════════════════════════════ */
+function getWeekRange(referenceDate) {
+  const d = new Date(referenceDate + 'T00:00:00');
+  const day = d.getDay();
+  const diffToMon = day === 0 ? -6 : 1 - day;
+  const mon = new Date(d); mon.setDate(d.getDate() + diffToMon);
+  const sun = new Date(mon); sun.setDate(mon.getDate() + 6);
+  const fmt = dt => dt.toISOString().slice(0,10);
+  return { start: fmt(mon), end: fmt(sun) };
+}
+
+function generateWeeklyReport(records) {
+  const latestDate = records[0]?.date;
+  if (!latestDate) return;
+  const { start, end } = getWeekRange(latestDate);
+  document.getElementById('weeklyRange').textContent = `${start} ～ ${end}`;
+
+  const weekRecs = records.filter(r => r.date >= start && r.date <= end);
+  const allDates = [];
+  // 產生該週每一天（即使沒記錄也列出）
+  for (let d = new Date(start+'T00:00:00'); d <= new Date(end+'T00:00:00'); d.setDate(d.getDate()+1)) {
+    allDates.push(d.toISOString().slice(0,10));
+  }
+  const recDates  = [...new Set(weekRecs.map(r=>r.date))].sort();
+  const totalDays = recDates.length; // 有記錄的天數
+  if (totalDays === 0) {
+    showWeeklyReport(`<p style="color:var(--muted)">本週（${start} ～ ${end}）尚無任何健康記錄。</p>`);
+    return;
+  }
+
+  const byDate = dt => weekRecs.filter(r => r.date === dt);
+
+  /* ── 各項統計 ── */
+  // 排便
+  const bowelDays   = recDates.filter(d => byDate(d).some(r => r.bowel === '有')).length;
+  const bowelPct    = Math.round(bowelDays / totalDays * 100);
+  const stoolAll    = weekRecs.map(r=>r.stool).filter(Boolean);
+  const stoolCount  = cnt => stoolAll.filter(s=>s===cnt).length;
+  const hardDays    = recDates.filter(d => byDate(d).some(r=>r.stool==='硬')).length;
+  const softDays    = recDates.filter(d => byDate(d).some(r=>r.stool==='軟')).length;
+
+  // 喝水
+  const waterByDay  = recDates.map(d => byDate(d).reduce((s,r)=>s+(Number(r.water)||0),0));
+  const totalWater  = waterByDay.reduce((s,v)=>s+v,0);
+  const avgWater    = totalDays > 0 ? Math.round(totalWater / totalDays) : 0;
+  const lowWaterDays= waterByDay.filter(v=>v>0&&v<500).length;
+  const noWaterDays = waterByDay.filter(v=>v===0).length;
+
+  // 走路
+  const walkDays    = recDates.filter(d => byDate(d).some(r=>r.walk==='有')).length;
+  const walkPct     = Math.round(walkDays / totalDays * 100);
+
+  // 用藥
+  const medDays     = recDates.filter(d => byDate(d).some(r=>r.medication==='有')).length;
+  const medPct      = Math.round(medDays / totalDays * 100);
+
+  // 精神
+  const goodDays    = recDates.filter(d => byDate(d).some(r=>r.mood==='好')).length;
+  const badDays     = recDates.filter(d => byDate(d).some(r=>r.mood==='不好')).length;
+  const okDays      = recDates.filter(d =>
+    byDate(d).some(r=>r.mood==='普通') && !byDate(d).some(r=>r.mood==='好')).length;
+
+  // 備註彙整
+  const allNotes    = weekRecs.map(r=>r.note).filter(Boolean);
+
+  /* ── 評語輔助 ── */
+  const tag = (text, cls) => `<span class="${cls}">${text}</span>`;
+  const good  = t => tag(t, 'highlight');
+  const warn  = t => tag(t, 'warn');
+  const alert = t => tag(t, 'alert');
+  const pctTag = (pct, goodThr=80, warnThr=50) =>
+    pct >= goodThr ? good(pct+'%') : pct >= warnThr ? warn(pct+'%') : alert(pct+'%');
+
+  /* ── 各段分析 ── */
+  // 排便
+  let bowelText = `本週有記錄的 ${totalDays} 天中，${good(bowelDays+'天')} 有排便，達成率 ${pctTag(bowelPct)}。`;
+  if (stoolAll.length > 0) {
+    const types = [];
+    if (stoolCount('正常') > 0) types.push(good('正常 '+stoolCount('正常')+'次'));
+    if (stoolCount('軟') > 0)   types.push(warn('軟便 '+stoolCount('軟')+'次'));
+    if (stoolCount('硬') > 0)   types.push(alert('硬便 '+stoolCount('硬')+'次'));
+    bowelText += `性狀方面：${types.join('、')}。`;
+  }
+  if (hardDays >= 2) bowelText += `本週出現 ${alert(hardDays+'天')} 硬便，建議增加水分及蔬果攝取。`;
+  if (bowelPct < 60) bowelText += `排便天數偏低，請留意是否有便秘情形。`;
+
+  // 喝水
+  let waterText = '';
+  if (noWaterDays === totalDays) {
+    waterText = `本週 ${alert('所有天數')} 均未記錄喝水量，請確認是否有記錄到資料。`;
+  } else {
+    waterText = `本週日均喝水量約 ${avgWater >= 500 ? good(avgWater+'ml') : avgWater >= 300 ? warn(avgWater+'ml') : alert(avgWater+'ml')}。`;
+    if (noWaterDays > 0) waterText += `有 ${warn(noWaterDays+'天')} 未記錄水量。`;
+    if (lowWaterDays > 0) waterText += `有 ${warn(lowWaterDays+'天')} 喝水不足 500ml，`;
+    if (avgWater < 500) waterText += `整體水分補充${alert('明顯不足')}，建議每日目標至少 800～1000ml。`;
+    else if (avgWater < 800) waterText += `水分補充${warn('尚可')}，仍有提升空間。`;
+    else waterText += `水分補充${good('表現良好')}，請繼續保持！`;
+  }
+
+  // 走路
+  let walkText = `本週 ${totalDays} 天中有 ${walkPct>=80?good(walkDays+'天'):walkPct>=50?warn(walkDays+'天'):alert(walkDays+'天')} 有走路活動，達成率 ${pctTag(walkPct)}。`;
+  if (walkPct === 100) walkText += `每天都有活動，${good('非常棒')}！`;
+  else if (walkPct >= 80) walkText += `活動量${good('相當不錯')}，繼續維持。`;
+  else if (walkPct >= 50) walkText += `活動量${warn('普通')}，建議天氣好時多在室內或室外走走。`;
+  else walkText += `活動量${alert('偏低')}，可以試著在家中短距離走動，有助於腸胃蠕動。`;
+
+  // 用藥
+  let medText = `本週用藥達成率 ${pctTag(medPct)}（${medPct>=80?good(medDays+'天'):medPct>=50?warn(medDays+'天'):alert(medDays+'天')}／${totalDays}天）。`;
+  if (medPct < 80) medText += `有 ${alert(totalDays-medDays+'天')} 未記錄用藥，請確認是否按時服藥。`;
+  else medText += `用藥情況${good('良好')}，請繼續按時服用。`;
+
+  // 精神
+  let moodText = '';
+  if (goodDays + okDays + badDays === 0) {
+    moodText = `本週${warn('未記錄')}精神狀態，建議每天記錄以便追蹤。`;
+  } else {
+    const parts = [];
+    if (goodDays > 0)  parts.push(good('精神好 '+goodDays+'天'));
+    if (okDays  > 0)  parts.push(warn('普通 '+okDays+'天'));
+    if (badDays > 0)  parts.push(alert('精神不好 '+badDays+'天'));
+    moodText = `本週精神狀態：${parts.join('、')}。`;
+    if (badDays >= 2)  moodText += `精神不佳天數${alert('較多')}，請多關心情緒與休息品質。`;
+    else if (goodDays >= totalDays * 0.6) moodText += `整體精神狀態${good('令人放心')}！`;
+  }
+
+  // 備註摘要
+  const notesSection = allNotes.length > 0
+    ? `<h4>📝 本週備註</h4><p>${allNotes.map(n=>`・${n}`).join('<br>')}</p>`
+    : '';
+
+  // 建議
+  const suggests = [];
+  if (hardDays >= 2 || bowelPct < 60) suggests.push('多補充蔬菜、水果及水分，有助腸道蠕動改善便秘。');
+  if (avgWater < 600 && noWaterDays < totalDays) suggests.push('每次用餐後提醒喝一杯水（約 200ml），慢慢養成習慣。');
+  if (walkPct < 60) suggests.push('即使在室內，每天試著走路 10～15 分鐘，對體力與消化都有幫助。');
+  if (medPct < 80)  suggests.push('可以設定手機提醒，確保每天按時服藥。');
+  if (badDays >= 2) suggests.push('多陪伴聊天或做喜歡的事，保持心情愉快。');
+  if (suggests.length === 0) suggests.push('本週整體狀況良好，繼續保持現有的生活習慣！');
+
+  const html = `
+    <h4>💩 排便狀況</h4><p>${bowelText}</p>
+    <h4>💧 水分補充</h4><p>${waterText}</p>
+    <h4>🚶 活動與運動</h4><p>${walkText}</p>
+    <h4>💊 用藥情形</h4><p>${medText}</p>
+    <h4>😊 精神與情緒</h4><p>${moodText}</p>
+    ${notesSection}
+    <div class="suggest">💡 本週建議：<br>${suggests.map((s,i)=>`${i+1}. ${s}`).join('<br>')}</div>
+  `;
+  showWeeklyReport(html);
+}
+
+function showWeeklyReport(html) {
+  document.getElementById('weeklyLoading').style.display = 'none';
+  document.getElementById('weeklyError').style.display   = 'none';
+  const el = document.getElementById('weeklyContent');
+  el.innerHTML = html; el.style.display = 'block';
+  document.getElementById('weeklyBadge').textContent     = '✅ 本週已產出';
+  document.getElementById('weeklyBadge').style.background   = 'rgba(62,207,142,.2)';
+  document.getElementById('weeklyBadge').style.borderColor  = 'rgba(62,207,142,.4)';
+  document.getElementById('weeklyBadge').style.color        = '#3ecf8e';
+}
+
+function showWeeklyError(msg) {
+  document.getElementById('weeklyLoading').style.display = 'none';
+  const el = document.getElementById('weeklyError');
+  el.innerHTML = msg; el.style.display = 'block';
 }
 
 function renderToday(date, recs) {
