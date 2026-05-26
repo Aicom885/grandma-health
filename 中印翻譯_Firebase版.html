@@ -103,6 +103,16 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .send-btn:disabled { opacity: 0.4; }
 .zh-input-area .send-btn { background: #7B3810; }
 .id-input-area .send-btn { background: #0A5E49; }
+.img-btn { width: 44px; height: 44px; border-radius: 50%; border: none; background: #f0f0f0; font-size: 20px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; transition: transform 0.12s, background 0.15s; }
+.img-btn:active { transform: scale(0.92); background: #e0e0e0; }
+.img-btn:disabled { opacity: 0.4; }
+/* 圖片泡泡 */
+.bubble img { max-width: 220px; max-height: 220px; border-radius: 10px; display: block; cursor: pointer; }
+/* 全螢幕看圖 */
+.img-viewer { position: fixed; inset: 0; background: rgba(0,0,0,0.9); display: none; align-items: center; justify-content: center; z-index: 200; padding: 20px; }
+.img-viewer.show { display: flex; }
+.img-viewer img { max-width: 100%; max-height: 100%; border-radius: 8px; object-fit: contain; }
+.img-viewer-close { position: absolute; top: 16px; right: 16px; background: rgba(255,255,255,0.2); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
 
 .empty-state { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: #ccc; pointer-events: none; }
 .empty-state .icon { font-size: 48px; }
@@ -178,6 +188,8 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
     </div>
   </div>
   <div class="input-area" id="inputArea">
+    <button class="img-btn" id="imgBtn" onclick="document.getElementById('imgInput').click()">🖼</button>
+    <input type="file" id="imgInput" accept="image/*" style="display:none" onchange="sendImage(this)">
     <textarea id="msgInput" rows="1" placeholder="輸入訊息…" oninput="autoResize(this)"></textarea>
     <button class="send-btn" id="sendBtn" onclick="sendMessage()">↑</button>
   </div>
@@ -197,6 +209,12 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 </div>
 
 <div class="toast" id="toast"></div>
+
+<!-- 全螢幕看圖 -->
+<div class="img-viewer" id="imgViewer" onclick="closeViewer()">
+  <button class="img-viewer-close" onclick="closeViewer()">✕</button>
+  <img id="imgViewerImg" src="" alt="">
+</div>
 
 <script>
 let myLang='', room='room1', msgRef=null, typingRef=null, roomRef=null;
@@ -311,7 +329,12 @@ function addBubble(d, key, playSound){
   const mainText = isSent ? d.original   : d.translated;
   const subText  = isSent ? d.translated : d.original;
   const time = new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
-  row.innerHTML=`<div class="bubble"><div class="bubble-main">${esc(mainText)}</div><div class="bubble-trans">${esc(subText)}</div></div><div class="msg-time">${time}</div>`;
+  // 圖片訊息 vs 文字訊息
+  if(d.type === 'image'){
+    row.innerHTML=`<div class="bubble"><img src="${d.imageData}" alt="圖片" onclick="viewImage(this.src)"></div><div class="msg-time">${time}</div>`;
+  } else {
+    row.innerHTML=`<div class="bubble"><div class="bubble-main">${esc(mainText)}</div><div class="bubble-trans">${esc(subText)}</div></div><div class="msg-time">${time}</div>`;
+  }
   msgs.insertBefore(row, document.getElementById('typingIndicator'));
 
   // 對方傳來的訊息才播音 + 閃爍
@@ -385,6 +408,58 @@ function scrollBottom(){ const m=document.getElementById('messages'); m.scrollTo
 function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,100)+'px'; }
 function showToast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.className='toast show'; setTimeout(()=>t.className='toast',3000); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>'); }
+
+// ── 圖片傳送 ──
+async function sendImage(input){
+  const file = input.files[0];
+  if(!file) return;
+  input.value = ''; // 重置以便再次選同一張
+
+  const imgBtn = document.getElementById('imgBtn');
+  imgBtn.disabled = true;
+  showToast('📤 圖片上傳中…');
+
+  try {
+    const base64 = await compressImage(file, 900, 0.78);
+    await msgRef.push({ from: myLang, type: 'image', imageData: base64, ts: Date.now() });
+  } catch(e) {
+    showToast('⚠️ 圖片傳送失敗，請重試');
+  }
+  imgBtn.disabled = false;
+}
+
+function compressImage(file, maxPx, quality){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if(w > maxPx || h > maxPx){
+          if(w > h){ h = Math.round(h * maxPx / w); w = maxPx; }
+          else     { w = Math.round(w * maxPx / h); h = maxPx; }
+        }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function viewImage(src){
+  document.getElementById('imgViewerImg').src = src;
+  document.getElementById('imgViewer').classList.add('show');
+}
+function closeViewer(){
+  document.getElementById('imgViewer').classList.remove('show');
+  document.getElementById('imgViewerImg').src = '';
+}
 
 document.getElementById('msgInput').addEventListener('keydown',e=>{
   if(e.key==='Enter'&&!e.shiftKey){ e.preventDefault(); sendMessage(); }
