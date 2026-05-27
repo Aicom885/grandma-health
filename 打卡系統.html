@@ -341,7 +341,10 @@ function renderRecords(){
         html+=cardHtml(r,'in','上班');
         if(nxt){
           html+=cardHtml(nxt,'out','下班');
-          html+=`<div class="pair-dur">⏱ 工時 <span class="dur">${durText(nxt.ts-r.ts)}</span></div>`;
+          const totalMs=nxt.ts-r.ts;
+          const actualMs=Math.max(0,totalMs-3600000);
+          const lunchNote=totalMs>=3600000?'（已扣午休1小時）':'';
+          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted)">${lunchNote}</span></div>`;
           i+=2;continue;
         }
       }else{
