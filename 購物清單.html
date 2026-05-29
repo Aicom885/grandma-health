@@ -71,6 +71,10 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);padding-bottom:1
 .btn-close-tab{display:block;width:100%;padding:15px;background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:12px;font-size:1rem;font-weight:900;cursor:pointer;font-family:inherit;box-shadow:0 4px 12px rgba(220,38,38,.3);margin-bottom:10px;transition:all .2s;}
 .btn-done-back{display:block;width:100%;padding:12px;background:#f1f5f9;color:#475569;border:none;border-radius:10px;font-size:.85rem;font-weight:700;cursor:pointer;font-family:inherit;}
 .close-manual{display:none;margin-top:14px;padding:12px 14px;background:#fef9c3;border-radius:10px;font-size:.78rem;color:#713f12;line-height:1.7;text-align:left;}
+.step-box{background:#f0fdf4;border-radius:10px;padding:12px 14px;margin-bottom:4px;text-align:left;}
+.step-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px;font-size:.8rem;color:#1e293b;line-height:1.5;}
+.step-row:last-child{margin-bottom:0;}
+.step-num{font-size:1.3rem;flex:0 0 auto;line-height:1;}
 
 /* ===== 列印 / PDF 樣式 ===== */
 @media print{
@@ -105,7 +109,7 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);padding-bottom:1
 <div id="main"></div>
 <div class="bar"><button class="bc" onclick="clearAll()">🗑️ 清除</button><button class="bp" id="pbtn" onclick="showPrev()" disabled>📋 傳送清單</button></div>
 <div class="ov" id="ov"><div class="mb"><div class="mt">📋 確認清單 / Konfirmasi</div><div id="pvcont"></div><div class="act-btns"><button class="btn-share" onclick="doShare()">📤 分享 PDF<br><span style="font-size:.7rem;font-weight:400;opacity:.85">傳送給別人 / Bagikan</span></button><button class="btn-save" onclick="doSave()">💾 存檔 PDF<br><span style="font-size:.7rem;font-weight:400;opacity:.85">存到手機 / Simpan</span></button></div><button class="btn-back-sm" onclick="closeOv()">← 繼續選購 / Kembali</button></div></div>
-<div class="ov" id="doneOv"><div class="done-box"><div class="done-icon">✅</div><div class="done-title">PDF 已產生！Selesai！</div><div class="done-sub"><strong>📱 iPhone：</strong>列印預覽中點 <strong>「□↑」</strong> 可分享或存到檔案<br><strong>💻 PC：</strong>列印對話框選「另存為 PDF」即可</div><div class="close-manual" id="closeMsg" style="display:none"><strong>📱 Safari 關閉步驟：</strong><br><br><div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px"><span style="font-size:1.4rem">①</span><span>從螢幕<strong>底部向上滑</strong>，或按<strong>首頁鍵</strong>，回到桌面</span></div><div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px"><span style="font-size:1.4rem">②</span><span>點一下 Safari 圖示開啟，點下方 <strong>⊞</strong> 分頁按鈕</span></div><div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:12px"><span style="font-size:1.4rem">③</span><span>找到此購物清單分頁，向<strong>左滑</strong>出現「關閉」，或向<strong>上滑</strong>甩掉即可</span></div><div style="background:#dcfce7;border-radius:8px;padding:8px 10px;font-size:.75rem;color:#166534">✅ 關閉後此分頁就不會再佔用 Safari 了！<br><em>Setelah ditutup, halaman ini tidak akan tersisa di Safari.</em></div></div><button class="btn-close-tab" id="closeBtn" onclick="tryClose()" style="margin-top:16px">✕ 關閉此分頁 / Tutup Halaman</button><button class="btn-done-back" onclick="document.getElementById('doneOv').classList.remove('on')">← 返回繼續選購</button></div></div>
+<div class="ov" id="doneOv"><div class="done-box"><div class="done-icon">✅</div><div class="done-title">清單已送出！Selesai！</div><div id="iosBlock" style="display:none"><p class="done-sub" style="margin-bottom:16px">列印/分享完成後，請依下方步驟關閉 Safari 分頁：<br><em style="font-size:.72rem">Setelah selesai, tutup tab Safari dengan langkah berikut:</em></p><div class="step-box"><div class="step-row"><span class="step-num">①</span><span>從螢幕<strong>底部向上滑</strong>，回到桌面<br><em>Geser layar ke atas untuk kembali ke Home</em></span></div><div class="step-row"><span class="step-num">②</span><span>點 Safari → 下方 <strong>⊞</strong> 分頁按鈕<br><em>Buka Safari → ketuk ikon ⊞ di bawah</em></span></div><div class="step-row"><span class="step-num">③</span><span>找到購物清單分頁，向<strong>左滑</strong>點「關閉」<br><em>Cari tab ini → geser ke kiri → ketuk "Tutup"</em></span></div></div></div><div id="pcBlock" style="display:none"><p class="done-sub" style="margin-bottom:16px">列印/PDF 完成，可以關閉此視窗了。<br><em style="font-size:.72rem">Cetak/PDF selesai. Silakan tutup jendela ini.</em></p><button class="btn-close-tab" id="pcCloseBtn" onclick="doPCClose()">✕ 關閉視窗 / Tutup</button><div id="pcCloseMsg" style="display:none;margin-top:12px;padding:10px 12px;background:#fef9c3;border-radius:8px;font-size:.78rem;color:#713f12;line-height:1.6">請直接按下瀏覽器右上角 <strong>✕</strong> 關閉此視窗。<br><em>Tutup secara manual dengan klik ✕ di pojok kanan atas browser.</em></div></div><button class="btn-done-back" style="margin-top:14px" onclick="document.getElementById('doneOv').classList.remove('on')">← 返回繼續選購</button></div></div>
 <div class="sec ps" id="ps" style="display:none"></div>
 <script type="application/json" id="dCATS">[{"id":"vegetable","name":"🥬 蔬菜類","nameID":"Sayuran","color":"#166534","bg":"#dcfce7"},{"id":"fruit","name":"🍉 水果類","nameID":"Buah-buahan","color":"#9f1239","bg":"#ffe4e6"},{"id":"meat","name":"🥩 肉類海鮮","nameID":"Daging & Ikan","color":"#7c2d12","bg":"#fef0e8"},{"id":"egg","name":"🥚 蛋類豆製品","nameID":"Telur & Tahu","color":"#713f12","bg":"#fef9c3"},{"id":"frozen","name":"🍱 冷凍點心","nameID":"Makanan Beku","color":"#1e3a8a","bg":"#dbeafe"},{"id":"snack","name":"🍜 速食零食","nameID":"Makanan Instan & Snack","color":"#6b21a8","bg":"#f3e8ff"},{"id":"drink","name":"🥛 飲品","nameID":"Minuman","color":"#075985","bg":"#e0f2fe"},{"id":"condiment","name":"🫙 調味料","nameID":"Bumbu Dapur","color":"#78350f","bg":"#fef3c7"},{"id":"staple","name":"🍚 主食/米糧","nameID":"Makanan Pokok","color":"#1c4532","bg":"#d1fae5"},{"id":"daily","name":"🧴 生活用品","nameID":"Kebutuhan Harian","color":"#1e3a8a","bg":"#e8edff"}]</script>
 <script type="application/json" id="dITEMS">[{"n":"大黃瓜","i":"Mentimun Besar","c":"vegetable"},{"n":"小黃瓜","i":"Mentimun Kecil","c":"vegetable"},{"n":"小白菜","i":"Pakcoy","c":"vegetable"},{"n":"白菜","i":"Sawi Putih","c":"vegetable"},{"n":"木耳","i":"Jamur Kuping","c":"vegetable"},{"n":"大蒜","i":"Bawang Putih","c":"vegetable"},{"n":"生薑","i":"Jahe","c":"vegetable"},{"n":"金針菇","i":"Jamur Enoki","c":"vegetable"},{"n":"青江菜","i":"Bok Choy","c":"vegetable"},{"n":"青蔥","i":"Daun Bawang","c":"vegetable"},{"n":"南瓜","i":"Labu Kuning","c":"vegetable"},{"n":"洋蔥","i":"Bawang Bombay","c":"vegetable"},{"n":"苦瓜","i":"Pare","c":"vegetable"},{"n":"茄子","i":"Terong","c":"vegetable"},{"n":"高麗菜","i":"Kol","c":"vegetable"},{"n":"絲瓜","i":"Gambas","c":"vegetable"},{"n":"番茄","i":"Tomat","c":"vegetable"},{"n":"白蘿蔔","i":"Lobak Putih","c":"vegetable"},{"n":"木瓜","i":"Pepaya","c":"fruit"},{"n":"西瓜","i":"Semangka","c":"fruit"},{"n":"奇異果","i":"Kiwi","c":"fruit"},{"n":"哈密瓜","i":"Melon","c":"fruit"},{"n":"香蕉","i":"Pisang","c":"fruit"},{"n":"甜橘","i":"Jeruk Manis","c":"fruit"},{"n":"鳳梨","i":"Nanas","c":"fruit"},{"n":"牛肉","i":"Daging Sapi","c":"meat"},{"n":"豬肉","i":"Daging Babi","c":"meat"},{"n":"雞肉","i":"Ayam","c":"meat"},{"n":"草蝦","i":"Udang","c":"meat"},{"n":"鮭魚","i":"Ikan Salmon","c":"meat"},{"n":"吳郭魚","i":"Ikan Nila","c":"meat"},{"n":"柳葉魚","i":"Shishamo","c":"meat"},{"n":"秋刀魚","i":"Ikan Saury","c":"meat"},{"n":"白帶魚","i":"Ikan Hairtail","c":"meat"},{"n":"鱸魚","i":"Ikan Kakap","c":"meat"},{"n":"雞蛋","i":"Telur Ayam","c":"egg"},{"n":"鹹蛋","i":"Telur Asin","c":"egg"},{"n":"皮蛋","i":"Telur Century","c":"egg"},{"n":"豆腐","i":"Tahu Lembut","c":"egg"},{"n":"板豆腐","i":"Tahu Keras","c":"egg"},{"n":"豆漿","i":"Susu Kedelai","c":"egg"},{"n":"小龍包","i":"Xiaolongbao","c":"frozen"},{"n":"水餃","i":"Pangsit Rebus","c":"frozen"},{"n":"花枝丸","i":"Bakso Cumi","c":"frozen"},{"n":"虱目魚丸","i":"Bakso Bandeng","c":"frozen"},{"n":"鱈魚丸","i":"Bakso Ikan Cod","c":"frozen"},{"n":"布丁","i":"Puding","c":"frozen"},{"n":"泡麵","i":"Mie Instan","c":"snack"},{"n":"洋芋片","i":"Keripik Kentang","c":"snack"},{"n":"餅乾","i":"Biskuit","c":"snack"},{"n":"鮮奶","i":"Susu Segar","c":"drink"},{"n":"保久乳","i":"Susu UHT","c":"drink"},{"n":"杏仁飲","i":"Minuman Almond","c":"drink"},{"n":"礦泉水","i":"Air Mineral","c":"drink"},{"n":"大豆沙拉油","i":"Minyak Kedelai","c":"condiment"},{"n":"醬油","i":"Kecap Asin","c":"condiment"},{"n":"味噌","i":"Miso","c":"condiment"},{"n":"咖哩塊","i":"Blok Kari","c":"condiment"},{"n":"花生醬","i":"Selai Kacang","c":"condiment"},{"n":"草莓果醬","i":"Selai Stroberi","c":"condiment"},{"n":"糖","i":"Gula","c":"condiment"},{"n":"鹽","i":"Garam","c":"condiment"},{"n":"蒜仁","i":"Bawang Putih Kupas","c":"condiment"},{"n":"辣椒","i":"Cabai","c":"condiment"},{"n":"芋香米","i":"Beras Talas","c":"staple"},{"n":"饅頭","i":"Roti Kukus","c":"staple"},{"n":"白吐司","i":"Roti Tawar","c":"staple"},{"n":"尿布","i":"Popok Dewasa","c":"daily"},{"n":"沐浴乳","i":"Sabun Mandi","c":"daily"},{"n":"洗衣精","i":"Deterjen Cair","c":"daily"},{"n":"洗髮精","i":"Sampo","c":"daily"},{"n":"洗臉乳","i":"Pembersih Wajah","c":"daily"},{"n":"衛生紙","i":"Tisu","c":"daily"},{"n":"牙膏","i":"Pasta Gigi","c":"daily"},{"n":"衛生棉","i":"Pembalut","c":"daily"}]</script>
@@ -276,31 +280,28 @@ function doSave(){
   doShare(); // 機制相同，iOS/PC 皆由列印對話框儲存 PDF
 }
 
-/* ===== 關閉分頁 ===== */
-function tryClose(){
-  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
-    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  if(isIOS){
-    // iPhone: window.close() 只會留下空白分頁，直接顯示滑掉說明
-    document.getElementById('closeBtn').style.display='none';
-    document.getElementById('closeMsg').style.display='block';
-  } else {
-    // PC / Android: 直接關閉
-    window.close();
-    setTimeout(function(){
-      document.getElementById('closeMsg').style.display='block';
-    },800);
-  }
+/* ===== 平台偵測 ===== */
+var _isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
+  (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+
+/* ===== 關閉 (PC) ===== */
+function doPCClose(){
+  window.close();
+  setTimeout(function(){
+    document.getElementById('pcCloseMsg').style.display='block';
+    document.getElementById('pcCloseBtn').style.display='none';
+  },800);
 }
-/* 頁面載入時先偵測平台，預先調整按鈕文字 */
+
 window.addEventListener('DOMContentLoaded',function(){
   setup();
-  var isIOS=/iPad|iPhone|iPod/.test(navigator.userAgent)||
-    (navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
-  var btn=document.getElementById('closeBtn');
-  if(btn&&isIOS){
-    btn.textContent='📱 如何關閉此分頁';
-    btn.style.background='linear-gradient(135deg,#0369a1,#0ea5e9)';
+  // 顯示對應的完成區塊
+  if(_isIOS){
+    document.getElementById('iosBlock').style.display='block';
+    document.getElementById('pcBlock').style.display='none';
+  } else {
+    document.getElementById('iosBlock').style.display='none';
+    document.getElementById('pcBlock').style.display='block';
   }
 });
 
