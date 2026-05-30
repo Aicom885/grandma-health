@@ -71,6 +71,18 @@ main {
 section { padding: 16px; margin-bottom: 14px; }
 h2 { margin: 0 0 12px; font-size: 19px; letter-spacing: 0; }
 canvas { width: 100%; height: 300px; border: 1px solid var(--line); border-radius: 6px; background: #fff; }
+.bowel-chart { display: grid; grid-template-columns: repeat(auto-fit, minmax(42px, 1fr)); gap: 8px; }
+.bowel-day { border: 1px solid var(--line); border-radius: 8px; background: #fff; padding: 8px 6px; text-align: center; min-height: 78px; }
+.bowel-mark { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 6px; color: #fff; font-weight: 800; font-size: 15px; }
+.bowel-date { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.bowel-state { font-size: 12px; margin-top: 4px; font-weight: 700; }
+.bowel-yes .bowel-mark { background: var(--green); }
+.bowel-no .bowel-mark { background: var(--red); }
+.bowel-mixed .bowel-mark { background: var(--amber); }
+.bowel-empty .bowel-mark { background: #8a96a3; }
+.bowel-legend { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+.bowel-legend span { display: inline-flex; gap: 5px; align-items: center; }
+.bowel-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
 .toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 button {
   border: 1px solid var(--line);
@@ -161,6 +173,17 @@ th { color: var(--muted); background: #fbfaf6; font-weight: 700; }
         <h2>每日喝水趨勢</h2>
         <canvas id="waterChart" width="920" height="330"></canvas>
         <div class="hint">橘色虛線是 800 ml 觀察線。喝水目標仍需依醫師限制、腎臟或心臟狀況調整。</div>
+      </section>
+      <section>
+        <h2>每日排便紀錄</h2>
+        <div class="bowel-chart" id="bowelChart"></div>
+        <div class="bowel-legend">
+          <span><i style="background: var(--green)"></i>有排便</span>
+          <span><i style="background: var(--red)"></i>未排便</span>
+          <span><i style="background: var(--amber)"></i>同日混合</span>
+          <span><i style="background: #8a96a3"></i>未填寫</span>
+        </div>
+        <div class="hint">顯示最近 30 天，每一天以當日所有紀錄彙總。</div>
       </section>
       <section>
         <h2>需要注意的日期</h2>
@@ -376,6 +399,7 @@ function renderDashboard(records) {
   renderCards(s);
   renderLatest(data.daily.at(-1));
   drawWater(data.daily);
+  renderBowelChart(data.daily);
   renderBars(s.counts);
   renderRiskRows(currentFilter);
   renderAnalysis(s, data.daily);
@@ -466,6 +490,29 @@ function drawWater(daily) {
   [0, Math.floor(daily.length / 2), daily.length - 1].forEach(index => {
     if (daily[index]) ctx.fillText(daily[index].date.slice(5), pad + index * step - 16, height - 12);
   });
+}
+
+function renderBowelChart(daily) {
+  const days = daily.slice(Math.max(0, daily.length - 30)).reverse();
+  document.getElementById('bowelChart').innerHTML = days.map(day => {
+    let state = 'empty';
+    let label = '未填';
+    let mark = '-';
+    if (day.bowelYes > 0 && day.bowelNo > 0) {
+      state = 'mixed';
+      label = '混合';
+      mark = '!';
+    } else if (day.bowelYes > 0) {
+      state = 'yes';
+      label = '有';
+      mark = '✓';
+    } else if (day.bowelNo > 0) {
+      state = 'no';
+      label = '沒有';
+      mark = '×';
+    }
+    return `<div class="bowel-day bowel-${state}" title="${day.date}：${label}"><div class="bowel-mark">${mark}</div><div class="bowel-date">${day.date.slice(5)}</div><div class="bowel-state">${label}</div></div>`;
+  }).join('');
 }
 
 function renderBars(counts) {
