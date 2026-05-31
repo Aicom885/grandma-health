@@ -342,9 +342,8 @@ function punch(){
       gps: posSnap ? {lat:posSnap.lat, lng:posSnap.lng, acc:posSnap.acc} : null
     }).then(()=>{
       document.getElementById('loadingOverlay').classList.remove('open');
-      const label = type==='in'?'上班':'下班';
       const gpsNote = posSnap?` 📍±${posSnap.acc}m`:'（無位置）';
-      showToast('✅ '+selectedUser+' '+label+'打卡 '+fmtTime(now)+gpsNote);
+      showToast('✅ '+selectedUser+' 打卡 '+fmtTime(now)+gpsNote);
     }).catch(e=>{
       document.getElementById('loadingOverlay').classList.remove('open');
       showToast('❌ 儲存失敗：'+e.message);
