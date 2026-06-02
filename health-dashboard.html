@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>健康存摺三高追蹤儀表板</title>
+  <style>
+    :root {
+      --bg: #f7f8fa;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #667085;
+      --line: #d9dee7;
+      --good: #16835f;
+      --watch: #b7791f;
+      --risk: #c2413b;
+      --accent: #0f766e;
+      --accent-2: #e85d4f;
+      --accent-3: #7c6fbb;
+      --shadow: 0 12px 30px rgba(22, 30, 46, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Microsoft JhengHei", "PingFang TC", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      line-height: 1.55;
+    }
+
+    header {
+      background: #13231f;
+      color: #fff;
+      padding: 28px clamp(18px, 4vw, 56px);
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 24px;
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: clamp(28px, 4vw, 44px);
+      letter-spacing: 0;
+      line-height: 1.16;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: #d8e5df;
+      max-width: 760px;
+      font-size: 16px;
+    }
+
+    .upload {
+      min-width: 280px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.22);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .upload label {
+      display: block;
+      font-size: 13px;
+      color: #d8e5df;
+      margin-bottom: 8px;
+    }
+
+    input[type="file"] {
+      width: 100%;
+      color: #fff;
+      font-size: 13px;
+    }
+
+    main {
+      max-width: 1240px;
+      margin: 0 auto;
+      padding: 26px clamp(14px, 3vw, 32px) 56px;
+    }
+
+    .notice {
+      border-left: 4px solid var(--accent);
+      background: #eef8f6;
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      color: #24433d;
+      margin-bottom: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+
+    .metric {
+      min-height: 142px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .metric .label {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .metric .value {
+      font-size: clamp(30px, 4vw, 42px);
+      font-weight: 750;
+      line-height: 1;
+      margin: 14px 0 8px;
+    }
+
+    .metric small,
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      height: 26px;
+      padding: 0 9px;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 12px;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .ok { color: var(--good); }
+    .warn { color: var(--watch); }
+    .bad { color: var(--risk); }
+
+    h2 {
+      margin: 0 0 10px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    .chart-wrap {
+      min-height: 285px;
+    }
+
+    svg {
+      width: 100%;
+      height: 250px;
+      display: block;
+      overflow: visible;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px 16px;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .legend span::before {
+      content: "";
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 6px;
+      background: var(--c);
+    }
+
+    .insights {
+      display: grid;
+      gap: 10px;
+    }
+
+    .insight {
+      border-left: 4px solid var(--line);
+      padding: 10px 12px;
+      background: #fbfcfd;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .insight.bad { border-left-color: var(--risk); color: var(--ink); }
+    .insight.warn { border-left-color: var(--watch); color: var(--ink); }
+    .insight.ok { border-left-color: var(--good); color: var(--ink); }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      color: var(--muted);
+      font-weight: 700;
+      background: #fbfcfd;
+      position: sticky;
+      top: 0;
+    }
+
+    .tablebox {
+      max-height: 420px;
+      overflow: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .sources a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid rgba(15,118,110,.35);
+    }
+
+    @media (max-width: 920px) {
+      .topbar { flex-direction: column; }
+      .upload { width: 100%; }
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .metric { min-height: 126px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="topbar">
+      <div>
+        <h1>健康存摺三高追蹤儀表板</h1>
+        <p class="subtitle" id="subtitle">根據目前載入資料產生趨勢摘要。此頁可直接放到網站，也可每 3 個月匯入新版健康存摺 JSON 重新分析。</p>
+      </div>
+      <div class="upload">
+        <label for="file">匯入新版健康存摺 JSON</label>
+        <input id="file" type="file" accept=".json,.txt,application/json">
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <div class="notice">
+      此儀表板用於整理趨勢與就醫討論重點，不取代醫師診斷。糖尿病、血脂、血壓與腎功能目標應依年齡、心血管病史、低血糖風險、用藥與主治醫師建議個別化。
+    </div>
+
+    <section class="grid" id="metrics"></section>
+
+    <section class="grid" style="margin-top:16px">
+      <div class="panel span-8 chart-wrap">
+        <h2>糖尿病控制趨勢</h2>
+        <div id="glucoseChart"></div>
+        <div class="legend">
+          <span style="--c:var(--accent)">HbA1c</span>
+          <span style="--c:var(--accent-2)">空腹血糖</span>
+          <span style="--c:var(--accent-3)">餐後血糖</span>
+        </div>
+      </div>
+      <div class="panel span-4">
+        <h2>重點判讀</h2>
+        <div class="insights" id="insights"></div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:16px">
+      <div class="panel span-6 chart-wrap">
+        <h2>血脂趨勢</h2>
+        <div id="lipidChart"></div>
+        <div class="legend">
+          <span style="--c:var(--accent)">LDL</span>
+          <span style="--c:var(--accent-2)">三酸甘油脂</span>
+          <span style="--c:var(--accent-3)">總膽固醇</span>
+        </div>
+      </div>
+      <div class="panel span-6 chart-wrap">
+        <h2>腎功能與尿蛋白</h2>
+        <div id="kidneyChart"></div>
+        <div class="legend">
+          <span style="--c:var(--accent)">eGFR</span>
+          <span style="--c:var(--accent-2)">血清肌酸酐</span>
+          <span style="--c:var(--accent-3)">尿微白蛋白</span>
+        </div>
+        <p class="muted">三項量尺不同：eGFR 越高越好，肌酸酐與尿微白蛋白通常越低越好；此圖用來看是否穩定，不代表三條線要同方向。</p>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:16px">
+      <div class="panel span-12">
+        <h2>完整追蹤表</h2>
+        <div class="tablebox">
+          <table>
+            <thead>
+              <tr>
+                <th>檢驗日</th>
+                <th>報告日</th>
+                <th>分類</th>
+                <th>項目</th>
+                <th>結果</th>
+                <th>參考/目標</th>
+                <th>狀態</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="grid" style="margin-top:16px">
+      <div class="panel span-12 sources">
+        <h2>判讀依據</h2>
+        <p class="muted">
+          參考 ADA Standards of Care in Diabetes 2026：多數非懷孕成人 HbA1c 目標常以 &lt;7% 討論，糖尿病合併較高心血管風險時血壓常以 &lt;130/80 mmHg、LDL &lt;70 mg/dL 作為治療討論目標；以及 National Kidney Foundation/KDIGO 對 eGFR 與尿白蛋白分類。來源：
+          <a href="https://professional.diabetes.org/standards-of-care/practice-guidelines-resources" target="_blank" rel="noreferrer">ADA 2026 Standards</a>、
+          <a href="https://diabetesjournals.org/care/article/49/Supplement_1/S132/163927/6-Glycemic-Goals-Hypoglycemia-and-Hyperglycemic" target="_blank" rel="noreferrer">ADA Glycemic Goals</a>、
+          <a href="https://diabetesjournals.org/care/article/49/Supplement_1/S216/163933/10-Cardiovascular-Disease-and-Risk-Management" target="_blank" rel="noreferrer">ADA Cardiovascular Risk</a>、
+          <a href="https://www.kidney.org/professionals/explore-your-knowledge/how-to-classify-ckd" target="_blank" rel="noreferrer">NKF CKD Classification</a>。
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const DEFAULT_ROWS = [
+      ["20230527","HbA1c","醣化血紅素",7.3,"%","[4.0][5.6]"],
+      ["20230819","HbA1c","醣化血紅素",7.5,"%","[4.0][5.6]"],
+      ["20231111","HbA1c","醣化血紅素",6.8,"%","[4.0][5.6]"],
+      ["20240302","HbA1c","醣化血紅素",6.6,"%","[4.0][5.6]"],
+      ["20240525","HbA1c","醣化血紅素",6.8,"%","[4.0][5.6]"],
+      ["20240928","HbA1c","醣化血紅素",6.6,"%","[4.0][5.6]"],
+      ["20241221","HbA1c","醣化血紅素",6.7,"%","[4.0][5.6]"],
+      ["20250322","HbA1c","醣化血紅素",6.7,"%","[4.0][5.6]"],
+      ["20250621","HbA1c","醣化血紅素",7.2,"%","[4.0][5.6]"],
+      ["20250927","HbA1c","醣化血紅素",6.8,"%","[4.0][5.6]"],
+      ["20251220","HbA1c","醣化血紅素",6.9,"%","[4.0][5.6]"],
+      ["20260314","HbA1c","醣化血紅素",6.9,"%","[4.0][5.6]","20260530"],
+      ["20230527","FPG","空腹血糖",153,"mg/dL","[70][100]"],
+      ["20230819","FPG","空腹血糖",135,"mg/dL","[70][100]"],
+      ["20231111","FPG","空腹血糖",105,"mg/dL","[70][100]"],
+      ["20240302","FPG","空腹血糖",119,"mg/dL","[70][100]"],
+      ["20240525","FPG","空腹血糖",110,"mg/dL","[70][100]"],
+      ["20240928","FPG","空腹血糖",118,"mg/dL","[70][100]"],
+      ["20241221","FPG","空腹血糖",123,"mg/dL","[70][100]"],
+      ["20250322","FPG","空腹血糖",132,"mg/dL","[70][100]"],
+      ["20250621","FPG","空腹血糖",113,"mg/dL","[70][100]"],
+      ["20250927","FPG","空腹血糖",137,"mg/dL","[70][100]"],
+      ["20251220","FPG","空腹血糖",132,"mg/dL","[70][100]"],
+      ["20260314","FPG","空腹血糖",114,"mg/dL","[70][100]","20260530"],
+      ["20230527","PPG","餐後血糖",262,"mg/dL","[70][120]"],
+      ["20230819","PPG","餐後血糖",199,"mg/dL","[70][120]"],
+      ["20231111","PPG","餐後血糖",243,"mg/dL","[70][120]"],
+      ["20240302","PPG","餐後血糖",151,"mg/dL","[70][120]"],
+      ["20240525","PPG","餐後血糖",191,"mg/dL","[70][140]"],
+      ["20240928","PPG","餐後血糖",124,"mg/dL","[70][140]"],
+      ["20241221","PPG","餐後血糖",204,"mg/dL","[70][140]"],
+      ["20250322","PPG","餐後血糖",167,"mg/dL","[70][140]"],
+      ["20250621","PPG","餐後血糖",169,"mg/dL","[70][140]"],
+      ["20250927","PPG","餐後血糖",196,"mg/dL","[70][140]"],
+      ["20251220","PPG","餐後血糖",164,"mg/dL","[70][140]"],
+      ["20230527","LDL","低密度脂蛋白膽固醇",95,"mg/dL","[][130]"],
+      ["20231111","LDL","低密度脂蛋白膽固醇",82,"mg/dL","[][130]"],
+      ["20240525","LDL","低密度脂蛋白膽固醇",109,"mg/dL","[][130]"],
+      ["20241221","LDL","低密度脂蛋白膽固醇",77,"mg/dL","[][130]"],
+      ["20250621","LDL","低密度脂蛋白膽固醇",92,"mg/dL","[][130]"],
+      ["20251220","LDL","低密度脂蛋白膽固醇",130,"mg/dL","[][130]"],
+      ["20260314","LDL","低密度脂蛋白膽固醇",86,"mg/dL","[][130]","20260530"],
+      ["20250927","HDL","高密度脂蛋白膽固醇",56,"mg/dL","[40][]"],
+      ["20230527","TG","三酸甘油脂",236,"mg/dL","[][150]"],
+      ["20230819","TG","三酸甘油脂",211,"mg/dL","[][150]"],
+      ["20231111","TG","三酸甘油脂",106,"mg/dL","[][150]"],
+      ["20240525","TG","三酸甘油脂",148,"mg/dL","[][150]"],
+      ["20241221","TG","三酸甘油脂",106,"mg/dL","[][150]"],
+      ["20250621","TG","三酸甘油脂",135,"mg/dL","[][150]"],
+      ["20251220","TG","三酸甘油脂",144,"mg/dL","[][150]"],
+      ["20230527","TC","總膽固醇",164,"mg/dL","[][200]"],
+      ["20230819","TC","總膽固醇",159,"mg/dL","[][200]"],
+      ["20231111","TC","總膽固醇",141,"mg/dL","[][200]"],
+      ["20240525","TC","總膽固醇",179,"mg/dL","[][200]"],
+      ["20241221","TC","總膽固醇",141,"mg/dL","[][200]"],
+      ["20250621","TC","總膽固醇",157,"mg/dL","[][200]"],
+      ["20251220","TC","總膽固醇",197,"mg/dL","[][200]"],
+      ["20231111","CRE","血清肌酸酐",0.95,"mg/dL","[0.70][1.30]"],
+      ["20240928","CRE","血清肌酸酐",0.95,"mg/dL","[0.70][1.30]"],
+      ["20241221","CRE","血清肌酸酐",1.06,"mg/dL","[0.70][1.30]"],
+      ["20250927","CRE","血清肌酸酐",1.05,"mg/dL","[0.70][1.30]"],
+      ["20260314","CRE","血清肌酸酐",0.98,"mg/dL","[0.70][1.30]","20260530"],
+      ["20250927","EGFR","eGFR",80.8,"mL/min/1.73m2","[60.0][]"],
+      ["20260314","EGFR","eGFR",87.8,"mL/min/1.73m2","[60.0][]","20260530"],
+      ["20230527","UAlb","尿微白蛋白",0.42,"","[0.00][3.00]"],
+      ["20231111","UAlb","尿微白蛋白",0.35,"","[0.00][3.00]"],
+      ["20240525","UAlb","尿微白蛋白",0.48,"","[0.00][3.00]"],
+      ["20241221","UAlb","尿微白蛋白",0.34,"","[0.00][3.00]"],
+      ["20250621","UAlb","尿微白蛋白",0.45,"","[0.00][3.00]"],
+      ["20251220","UAlb","尿微白蛋白",0.46,"","[0.00][3.00]"],
+      ["20230819","ALT","ALT",26,"U/L","[][41]"],
+      ["20240928","ALT","ALT",16,"U/L","[][41]"],
+      ["20250328","ALT","ALT",15,"U/L","[][41]"],
+      ["20250328","AST","AST",15,"U/L","[13][39]"]
+    ].map(([date, code, name, value, unit, ref, reportDate]) => ({ date, reportDate: reportDate || date, code, name, value, unit, ref, source: "目前載入摘要" }));
+
+    const DEFINITIONS = {
+      HbA1c: { category: "血糖", target: 7, direction: "below", label: "HbA1c", unit: "%", good: v => v < 7, warn: v => v < 8 },
+      FPG: { category: "血糖", target: 130, direction: "below", label: "空腹血糖", unit: "mg/dL", good: v => v <= 130, warn: v => v <= 160 },
+      PPG: { category: "血糖", target: 180, direction: "below", label: "餐後血糖", unit: "mg/dL", good: v => v < 180, warn: v => v <= 220 },
+      LDL: { category: "血脂", target: 70, direction: "below", label: "LDL", unit: "mg/dL", good: v => v < 70, warn: v => v < 100 },
+      HDL: { category: "血脂", target: 40, direction: "above", label: "HDL", unit: "mg/dL", good: v => v >= 40, warn: v => v >= 35 },
+      TG: { category: "血脂", target: 150, direction: "below", label: "三酸甘油脂", unit: "mg/dL", good: v => v < 150, warn: v => v < 200 },
+      TC: { category: "血脂", target: 200, direction: "below", label: "總膽固醇", unit: "mg/dL", good: v => v < 200, warn: v => v < 240 },
+      CRE: { category: "腎功能", target: 1.3, direction: "below", label: "血清肌酸酐", unit: "mg/dL", good: v => v <= 1.3, warn: v => v <= 1.6 },
+      EGFR: { category: "腎功能", target: 60, direction: "above", label: "eGFR", unit: "mL/min/1.73m2", good: v => v >= 60, warn: v => v >= 45 },
+      UAlb: { category: "腎功能", target: 3, direction: "below", label: "尿微白蛋白", unit: "", good: v => v < 3, warn: v => v < 30 },
+      ALT: { category: "肝功能", target: 41, direction: "below", label: "ALT", unit: "U/L", good: v => v <= 41, warn: v => v <= 80 },
+      AST: { category: "肝功能", target: 39, direction: "below", label: "AST", unit: "U/L", good: v => v <= 39, warn: v => v <= 80 }
+    };
+
+    function normalizeCode(row) {
+      const item = `${row["r7.9"] || ""} ${row["r7.10"] || ""}`.toLowerCase();
+      if (/a1c|hba1c|醣化|糖化/.test(item)) return "HbA1c";
+      if (/egfr/.test(item)) return "EGFR";
+      if (/低密度|ldl/.test(item)) return "LDL";
+      if (/高密度|hdl/.test(item)) return "HDL";
+      if (/三酸|triglyceride|tg/.test(item)) return "TG";
+      if (/總膽固醇|cholesterol/.test(item) && !/ldl|hdl|低密度|高密度/.test(item)) return "TC";
+      if (/餐後|pc/.test(item) && /glucose|葡萄糖|血糖/.test(item)) return "PPG";
+      if (/空腹|飯前|ac/.test(item) && /glucose|葡萄糖|血糖/.test(item)) return "FPG";
+      if (/微白蛋白/.test(item)) return "UAlb";
+      if (/ckd-epi|mdrd/.test(item)) return "EGFR";
+      if (/cre|creatinine|肌酸酐/.test(item) && /肌酸酐、血/.test(row["r7.9"] || "") && !/egfr/.test(item)) return "CRE";
+      if (/丙酮酸|alt|gpt/.test(item)) return "ALT";
+      if (/苯醋酸|ast|got/.test(item)) return "AST";
+      return "";
+    }
+
+    function parseHealthbankJson(obj) {
+      const rows = obj?.myhealthbank?.bdata?.r7 || [];
+      const normalized = [];
+      const seen = new Set();
+      for (const row of rows) {
+        const code = normalizeCode(row);
+        const rawValue = String(row["r7.11"] ?? "").trim();
+        if (!code || !/^-?\d+(\.\d+)?$/.test(rawValue)) continue;
+        const date = row["r7.5"] || row["r7.6"] || "";
+        const reportDate = row["r7.6"] || date;
+        const def = DEFINITIONS[code];
+        const name = def?.label || row["r7.9"] || row["r7.10"] || code;
+        const key = `${date}|${code}|${rawValue}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        normalized.push({
+          date,
+          reportDate,
+          code,
+          name,
+          value: Number(rawValue),
+          unit: def?.unit || "",
+          ref: row["r7.12"] || "",
+          source: row["r7.4"] || ""
+        });
+      }
+      return normalized.sort((a, b) => a.date.localeCompare(b.date) || a.code.localeCompare(b.code));
+    }
+
+    function ymd(date) {
+      if (!date || date.length < 8) return date || "";
+      return `${date.slice(0,4)}-${date.slice(4,6)}-${date.slice(6,8)}`;
+    }
+
+    function latest(rows, code) {
+      return rows.filter(r => r.code === code).sort((a, b) => a.date.localeCompare(b.date)).at(-1);
+    }
+
+    function statusFor(row) {
+      const def = DEFINITIONS[row.code];
+      if (!def) return { cls: "warn", text: "追蹤" };
+      if (def.good(row.value)) return { cls: "ok", text: "達標/穩定" };
+      if (def.warn(row.value)) return { cls: "warn", text: "需追蹤" };
+      return { cls: "bad", text: "偏高風險" };
+    }
+
+    function trend(rows, code) {
+      const arr = rows.filter(r => r.code === code).sort((a, b) => a.date.localeCompare(b.date));
+      if (arr.length < 2) return "";
+      const last = arr.at(-1).value;
+      const prev = arr.at(-2).value;
+      const delta = Math.round((last - prev) * 10) / 10;
+      if (delta === 0) return "與上次相同";
+      return `${delta > 0 ? "較上次上升" : "較上次下降"} ${Math.abs(delta)}`;
+    }
+
+    function renderMetrics(rows) {
+      const codes = ["HbA1c", "FPG", "PPG", "LDL", "TG", "EGFR", "UAlb", "ALT"];
+      document.getElementById("metrics").innerHTML = codes.map(code => {
+        const row = latest(rows, code);
+        if (!row) return "";
+        const st = statusFor(row);
+          const unit = row.unit ? `<small>${row.unit}</small>` : "";
+          const dateText = row.reportDate && row.reportDate !== row.date ? `${ymd(row.date)}，報告 ${ymd(row.reportDate)}` : ymd(row.date);
+          return `<div class="panel metric span-3">
+          <div class="label"><span>${DEFINITIONS[code].label}</span><span class="pill ${st.cls}">${st.text}</span></div>
+          <div><div class="value">${row.value} ${unit}</div><small>${dateText}，${trend(rows, code)}</small></div>
+        </div>`;
+      }).join("");
+    }
+
+    function buildInsights(rows) {
+      const a1c = latest(rows, "HbA1c");
+      const fpg = latest(rows, "FPG");
+      const ppg = latest(rows, "PPG");
+      const ldl = latest(rows, "LDL");
+      const tg = latest(rows, "TG");
+      const egfr = latest(rows, "EGFR");
+      const ualb = latest(rows, "UAlb");
+      const notes = [];
+      if (a1c) notes.push([a1c.value < 7 ? "ok" : "warn", `HbA1c 最新 ${a1c.value}%：近一年大多落在 6.7-7.2%，整體接近常見治療目標，但 2025-06 曾回升到 7.2%，仍值得看飲食、運動與用藥時點。`]);
+      if (fpg && ppg) notes.push([ppg.value >= 180 ? "warn" : "ok", `空腹血糖最新 ${fpg.value} mg/dL，餐後血糖最新 ${ppg.value} mg/dL：空腹已有改善，餐後仍偶有超過 180，飯後碳水量與餐後活動可能是下一個優先觀察點。`]);
+      if (ldl) notes.push([ldl.value < 70 ? "ok" : "warn", `LDL 最新 ${ldl.value} mg/dL：比 2025-12 的 130 明顯下降；若你屬糖尿病合併高心血管風險，常見討論目標會更接近 <70 mg/dL。`]);
+      if (tg) notes.push([tg.value < 150 ? "ok" : "warn", `三酸甘油脂最新 ${tg.value} mg/dL：目前接近標準邊緣，早期 236、211 已明顯改善，請持續避免含糖飲料、精緻澱粉與過量酒精。`]);
+      if (egfr && ualb) notes.push(["ok", `腎功能：eGFR 最新 ${egfr.value}，尿微白蛋白最新 ${ualb.value}，血清肌酸酐最新 ${latest(rows, "CRE")?.value ?? "未提供"}；三者量尺與方向不同，但目前共同訊號是穩定、沒有明顯惡化。糖尿病仍建議規律追蹤尿白蛋白/肌酸酐比值。`]);
+      return notes;
+    }
+
+    function renderInsights(rows) {
+      document.getElementById("insights").innerHTML = buildInsights(rows)
+        .map(([cls, text]) => `<div class="insight ${cls}">${text}</div>`)
+        .join("");
+    }
+
+    function chart(containerId, rows, series, opts = {}) {
+      const points = series.flatMap(s => rows.filter(r => r.code === s.code).map(r => ({...r, color: s.color})));
+      const el = document.getElementById(containerId);
+      if (!points.length) { el.innerHTML = `<p class="muted">沒有足夠資料</p>`; return; }
+      const dates = [...new Set(points.map(p => p.date))].sort();
+      const values = points.map(p => p.value);
+      const minV = opts.min ?? Math.min(...values, ...(opts.targets || []));
+      const maxV = opts.max ?? Math.max(...values, ...(opts.targets || []));
+      const pad = (maxV - minV || 1) * .12;
+      const low = minV - pad;
+      const high = maxV + pad;
+      const W = 760, H = 250, L = 48, R = 18, T = 18, B = 44;
+      const x = d => L + (dates.indexOf(d) / Math.max(1, dates.length - 1)) * (W - L - R);
+      const y = v => T + (1 - (v - low) / (high - low)) * (H - T - B);
+      const grid = [0, .25, .5, .75, 1].map(t => {
+        const yy = T + t * (H - T - B);
+        const val = Math.round((high - t * (high - low)) * 10) / 10;
+        return `<line x1="${L}" x2="${W-R}" y1="${yy}" y2="${yy}" stroke="#e6e9ef"/><text x="8" y="${yy+4}" font-size="11" fill="#667085">${val}</text>`;
+      }).join("");
+      const targetLines = (opts.targets || []).map(v => `<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="#9aa4b2" stroke-dasharray="4 4"/><text x="${W-R-70}" y="${y(v)-6}" font-size="11" fill="#667085">目標 ${v}</text>`).join("");
+      const paths = series.map(s => {
+        const arr = rows.filter(r => r.code === s.code).sort((a, b) => a.date.localeCompare(b.date));
+        if (!arr.length) return "";
+        const d = arr.map((p, i) => `${i ? "L" : "M"}${x(p.date)},${y(p.value)}`).join(" ");
+        const circles = arr.map(p => `<circle cx="${x(p.date)}" cy="${y(p.value)}" r="4" fill="${s.color}"><title>${ymd(p.date)} ${s.name}: ${p.value}</title></circle>`).join("");
+        return `<path d="${d}" fill="none" stroke="${s.color}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>${circles}`;
+      }).join("");
+      const labels = dates.filter((_, i) => i === 0 || i === dates.length - 1 || i % Math.ceil(dates.length / 5) === 0)
+        .map(d => `<text x="${x(d)}" y="${H-12}" text-anchor="middle" font-size="11" fill="#667085">${d.slice(0,4)}-${d.slice(4,6)}</text>`).join("");
+      el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="${containerId} 趨勢圖">${grid}${targetLines}<line x1="${L}" x2="${W-R}" y1="${H-B}" y2="${H-B}" stroke="#cfd5df"/>${paths}${labels}</svg>`;
+    }
+
+    function renderTable(rows) {
+      const showCodes = new Set(Object.keys(DEFINITIONS));
+      document.getElementById("tableBody").innerHTML = rows
+        .filter(r => showCodes.has(r.code))
+        .sort((a, b) => b.date.localeCompare(a.date) || a.code.localeCompare(b.code))
+        .map(row => {
+          const st = statusFor(row);
+          const def = DEFINITIONS[row.code];
+          const target = def ? `${def.direction === "below" ? "<" : ">="}${def.target} ${def.unit}` : row.ref;
+          return `<tr>
+            <td>${ymd(row.date)}</td>
+            <td>${ymd(row.reportDate || row.date)}</td>
+            <td>${def?.category || ""}</td>
+            <td>${row.name}</td>
+            <td><strong>${row.value}</strong> ${row.unit || ""}</td>
+            <td>${target}</td>
+            <td><span class="pill ${st.cls}">${st.text}</span></td>
+          </tr>`;
+        }).join("");
+    }
+
+    function render(rows, sourceLabel = "目前內建資料") {
+      rows = rows.filter(r => r.date && Number.isFinite(r.value)).sort((a, b) => a.date.localeCompare(b.date));
+      const minDate = rows[0]?.date || "";
+      const maxDate = rows.at(-1)?.date || "";
+      document.getElementById("subtitle").textContent = `${sourceLabel}，檢驗日期 ${ymd(minDate)} 至 ${ymd(maxDate)}，共整理 ${rows.length} 筆可追蹤數值。`;
+      renderMetrics(rows);
+      renderInsights(rows);
+      chart("glucoseChart", rows, [
+        { code: "HbA1c", name: "HbA1c", color: "#0f766e" },
+        { code: "FPG", name: "空腹血糖", color: "#e85d4f" },
+        { code: "PPG", name: "餐後血糖", color: "#7c6fbb" }
+      ], { min: 0, targets: [7, 130, 180] });
+      chart("lipidChart", rows, [
+        { code: "LDL", name: "LDL", color: "#0f766e" },
+        { code: "TG", name: "三酸甘油脂", color: "#e85d4f" },
+        { code: "TC", name: "總膽固醇", color: "#7c6fbb" }
+      ], { min: 40, targets: [70, 150, 200] });
+      chart("kidneyChart", rows, [
+        { code: "EGFR", name: "eGFR", color: "#0f766e" },
+        { code: "CRE", name: "血清肌酸酐", color: "#e85d4f" },
+        { code: "UAlb", name: "尿微白蛋白", color: "#7c6fbb" }
+      ], { min: 0, targets: [60] });
+      renderTable(rows);
+    }
+
+    document.getElementById("file").addEventListener("change", async event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      try {
+        const text = await file.text();
+        const obj = JSON.parse(text.replace(/^\uFEFF/, ""));
+        const rows = parseHealthbankJson(obj);
+        if (!rows.length) throw new Error("找不到可辨識的 r7 檢驗數值");
+        render(rows, `已匯入 ${file.name}`);
+      } catch (err) {
+        alert(`匯入失敗：${err.message}`);
+      }
+    });
+
+    render(DEFAULT_ROWS);
+  </script>
+</body>
+</html>
