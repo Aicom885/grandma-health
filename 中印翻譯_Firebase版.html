@@ -79,6 +79,8 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 .recv .bubble .bubble-main { color: #111; }
 .recv .bubble .bubble-trans { color: #777; }
 .msg-time { font-size: 10px; color: #bbb; margin-top: 3px; padding: 0 4px; }
+.read-receipt { font-size: 10px; color: #4ade80; margin-top: 1px; padding: 0 4px; display: none; }
+.read-receipt.show { display: block; }
 @keyframes newMsg { 0%{background:rgba(255,220,100,0.35)} 100%{background:transparent} }
 .recv.new-msg { animation: newMsg 1.2s ease-out; }
 
@@ -209,7 +211,7 @@ html, body { height: 100%; font-family: -apple-system, "PingFang TC", "Microsoft
 <div class="toast" id="toast"></div>
 
 <script>
-let myLang='', room='room1', msgRef=null, typingRef=null, roomRef=null;
+let myLang='', room='room1', msgRef=null, typingRef=null, roomRef=null, lastReadRef=null, otherReadRef=null;
 let soundOn=true, audioCtx=null, isFirstLoad=true;
 
 // ── 提示音 ──
@@ -279,6 +281,23 @@ function enterChat(lang){
   document.getElementById('msgInput').addEventListener('input',()=>{
     typingRef.set(document.getElementById('msgInput').value.length>0);
   });
+
+  // ── 已讀功能 ──
+  lastReadRef  = roomRef.child('lastRead/'+lang);          // 自己的已讀時間
+  otherReadRef = roomRef.child('lastRead/'+(isZh?'id':'zh')); // 對方的已讀時間
+
+  // 進入聊天室時更新自己的已讀時間
+  lastReadRef.set(Date.now());
+
+  // 監聽對方已讀時間 → 更新自己傳出去的泡泡顯示「已讀」
+  otherReadRef.on('value', snap=>{
+    const readTs = snap.val() || 0;
+    document.querySelectorAll('.msg-row.sent').forEach(row=>{
+      const ts = parseInt(row.dataset.ts || '0');
+      const receipt = row.querySelector('.read-receipt');
+      if(receipt && ts && ts <= readTs) receipt.classList.add('show');
+    });
+  });
 }
 
 // ── 訊息泡泡 ──
@@ -289,19 +308,23 @@ function addBubble(d,key,playSound){
   const row=document.createElement('div');
   row.className='msg-row '+(isSent?'sent':'recv')+(d.from==='id'?' id-msg':'');
   row.dataset.key=key;
+  row.dataset.ts=d.ts||0;
   const time=new Date(d.ts).toLocaleTimeString('zh-TW',{hour:'2-digit',minute:'2-digit'});
   if(d.type==='image'){
     row.innerHTML='<div class="bubble"><img src="'+d.imageData+'" alt="圖片" onclick="viewImage(this.src)"></div><div class="msg-time">'+time+'</div>';
   } else {
     const mainText=isSent?d.original:d.translated;
     const subText=isSent?d.translated:d.original;
-    row.innerHTML='<div class="bubble"><div class="bubble-main">'+esc(mainText)+'</div><div class="bubble-trans">'+esc(subText)+'</div></div><div class="msg-time">'+time+'</div>';
+    row.innerHTML='<div class="bubble"><div class="bubble-main">'+esc(mainText)+'</div><div class="bubble-trans">'+esc(subText)+'</div></div>'
+      +'<div class="msg-time">'+time+(isSent?'</div><div class="read-receipt">✓ 已讀</div>':'</div>');
   }
   msgs.insertBefore(row,document.getElementById('typingIndicator'));
   if(playSound&&!isSent){
     playNotify();
     row.classList.add('new-msg');
     if(navigator.vibrate) navigator.vibrate([100,50,100]);
+    // 收到對方訊息 → 更新自己的已讀時間
+    if(lastReadRef) lastReadRef.set(Date.now());
   }
 }
 
@@ -398,6 +421,7 @@ function clearLocalMessages(){
 function exitChat(){
   if(typingRef) typingRef.set(false);
   if(msgRef) msgRef.off();
+  if(otherReadRef) otherReadRef.off();
   db.ref('.info/connected').off();
   clearLocalMessages();
   isFirstLoad=true;
