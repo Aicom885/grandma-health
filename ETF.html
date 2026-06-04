@@ -247,8 +247,8 @@
   <button class="btn-save-month" onclick="openSaveModal()">💾 儲存本月紀錄</button>
 </div>
 <div class="action-row" style="padding-top:8px;">
-  <button class="btn-export" onclick="exportCSV('current')">📊 導出本人紀錄 CSV</button>
-  <button class="btn-export-all" onclick="exportCSV('all')">🏠 導出全家 CSV</button>
+  <button class="btn-export" onclick="exportCSV('current')">📋 複製本人紀錄</button>
+  <button class="btn-export-all" onclick="exportCSV('all')">🏠 複製全家紀錄</button>
 </div>
 
 <div id="etfList" class="etf-list"></div>
@@ -512,7 +512,7 @@ function exportCSV(mode) {
       const usd = weeks.reduce((s,r) => s + e.shares*r*0.7, 0);
       rows.push([e.ticker, e.shares, weeks[0], weeks[1], weeks[2], weeks[3], weeks[4]||0, usd.toFixed(2), Math.round(usd*fx)]);
     });
-    downloadCSV(BOM + rows.map(r => r.join(',')).join('\n'), m.name + '_配息紀錄.csv');
+    copyToClipboard(rows.map(r => r.join(',')).join('\n'), m.name + ' 配息紀錄');
 
   } else {
     // Export all members summary
@@ -539,18 +539,54 @@ function exportCSV(mode) {
       const total = vals.reduce((s,v) => s+v, 0);
       rows.push([month, ...vals.map(v => v.toFixed(2)), total.toFixed(2), Math.round(total*fx)]);
     });
-    downloadCSV(BOM + rows.map(r => r.join(',')).join('\n'), '全家配息紀錄.csv');
+    copyToClipboard(rows.map(r => r.join(',')).join('\n'), '全家配息紀錄');
   }
 }
 
-function downloadCSV(content, filename) {
-  const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename;
-  document.body.appendChild(a); a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+function copyToClipboard(text, label) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      showCopyToast(label + ' 已複製到剪貼簿！\n可貼到 Excel、Notes 或 Line。');
+    }).catch(() => {
+      fallbackCopy(text, label);
+    });
+  } else {
+    fallbackCopy(text, label);
+  }
+}
+
+function fallbackCopy(text, label) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.cssText = 'position:fixed;top:-9999px;left:-9999px;opacity:0';
+  document.body.appendChild(ta);
+  ta.focus(); ta.select();
+  try {
+    document.execCommand('copy');
+    showCopyToast(label + ' 已複製到剪貼簿！\n可貼到 Excel、Notes 或 Line。');
+  } catch(e) {
+    showCopyToast('複製失敗，請長按內容手動複製。');
+  }
+  document.body.removeChild(ta);
+}
+
+function showCopyToast(msg) {
+  let toast = document.getElementById('copyToast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'copyToast';
+    toast.style.cssText = 'position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#34d399;color:#0a0e17;font-family:Syne,sans-serif;font-weight:700;font-size:0.82rem;padding:12px 20px;border-radius:12px;z-index:9999;text-align:center;box-shadow:0 4px 20px rgba(52,211,153,0.4);max-width:280px;line-height:1.5;white-space:pre-line;';
+    document.body.appendChild(toast);
+  }
+  toast.textContent = msg;
+  toast.style.display = 'block';
+  toast.style.opacity = '1';
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.transition = 'opacity 0.4s';
+    toast.style.opacity = '0';
+    setTimeout(() => { toast.style.display = 'none'; toast.style.transition = ''; }, 400);
+  }, 2500);
 }
 
 // ── RENDER ALL ────────────────────────────────────────────
@@ -762,12 +798,13 @@ function confirmDeleteEtf() {
 // ── RESET & SAVE ──────────────────────────────────────────
 function openResetModal() { openModal('resetModal'); }
 function confirmReset() {
-  // Clear synced rates globally
   const etfs = loadMemberEtfs(activeMemberId);
   etfs.forEach(e => {
     if (e.synced) {
-      if (sharedRates[e.ticker]) sharedRates[e.ticker] = [0,0,0,0];
+      // Clear shared rates — affects all members
+      sharedRates[e.ticker] = [0,0,0,0,0];
     } else {
+      // Clear private weeks — always reinitialize
       e.privateWeeks = [0,0,0,0,0];
     }
   });
