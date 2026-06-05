@@ -481,11 +481,6 @@ header {
     <div class="sum-count" id="c-etf">0 筆</div>
   </div>
   <div class="sum-card">
-    <div class="sum-label">🟡 每月移工費用</div>
-    <div class="sum-val" style="color:var(--orange)" id="s-mth">$0</div>
-    <div class="sum-count" id="c-mth">0 筆</div>
-  </div>
-  <div class="sum-card">
     <div class="sum-label">🩷 全聯購物（＜$1,750）</div>
     <div class="sum-val" style="color:#ec4899" id="s-ql">$0</div>
     <div class="sum-count" id="c-ql">0 筆</div>
@@ -503,7 +498,6 @@ header {
   <div class="cat-chip chip-lv"  data-cat="lv"  onclick="setFilter('lv')">呂憲政支出</div>
   <div class="cat-chip chip-pub" data-cat="pub" onclick="setFilter('pub')">公費支出</div>
   <div class="cat-chip chip-etf" data-cat="etf" onclick="setFilter('etf')">ETF還款</div>
-  <div class="cat-chip chip-mth" data-cat="mth" onclick="setFilter('mth')">每月移工費用</div>
   <div class="cat-chip chip-ql"  data-cat="ql"  onclick="setFilter('ql')">全聯購物</div>
   <div class="cat-chip chip-none" data-cat="none" onclick="setFilter('none')">無</div>
 </div>
@@ -571,7 +565,6 @@ header {
         <div class="cat-option co-lv"  data-cat="lv"  onclick="selCat('lv')">呂憲政支出</div>
         <div class="cat-option co-pub" data-cat="pub" onclick="selCat('pub')">公費支出</div>
         <div class="cat-option co-etf" data-cat="etf" onclick="selCat('etf')">ETF還款支付</div>
-        <div class="cat-option co-mth" data-cat="mth" onclick="selCat('mth')">每月移工費用</div>
         <div class="cat-option co-ql"  data-cat="ql"  onclick="selCat('ql')">全聯購物＜$1,750</div>
         <div class="cat-option co-none" data-cat="none" onclick="selCat('none')">無（未分類）</div>
       </div>
@@ -808,7 +801,7 @@ function renderSummary() {
   // Monthly breakdown
   const mk = curKey();
   const monthly = txns.filter(t => monthKey(t) === mk);
-  const cats = ['lv','pub','etf','mth','ql'];
+  const cats = ['lv','pub','etf','ql'];
   cats.forEach(cat => {
     const items = monthly.filter(t => t.cat === cat);
     const sum = items.reduce((s,t) => s+t.amount, 0);
@@ -965,7 +958,6 @@ function renderAnnual() {
     { cat:'lv',  dot:'#3b82f6', name:'呂憲政支出',   cls:'blue' },
     { cat:'pub', dot:'#10b981', name:'公費支出',       cls:'green' },
     { cat:'etf', dot:'#8b5cf6', name:'ETF還款',        cls:'purple' },
-    { cat:'mth', dot:'#f59e0b', name:'每月移工費用',   cls:'orange' },
     { cat:'ql',  dot:'#ec4899', name:'全聯購物',       cls:'pink' },
   ];
 
