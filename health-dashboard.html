@@ -313,25 +313,6 @@
 
     <section class="grid" style="margin-top:16px">
       <div class="panel span-12">
-        <h2>醫學標準值</h2>
-        <div class="tablebox" style="max-height:520px">
-          <table>
-            <thead>
-              <tr>
-                <th>項目</th>
-                <th>一般/診斷標準</th>
-                <th>三高追蹤常用目標</th>
-                <th>提醒</th>
-              </tr>
-            </thead>
-            <tbody id="standardsBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <section class="grid" style="margin-top:16px">
-      <div class="panel span-12">
         <h2>完整追蹤表</h2>
         <div class="tablebox">
           <table>
@@ -343,7 +324,6 @@
                 <th>項目</th>
                 <th>結果</th>
                 <th>參考/目標</th>
-                <th>醫學標準值</th>
                 <th>狀態</th>
               </tr>
             </thead>
@@ -404,6 +384,7 @@
       ["20250621","PPG","餐後血糖",169,"mg/dL","[70][140]"],
       ["20250927","PPG","餐後血糖",196,"mg/dL","[70][140]"],
       ["20251220","PPG","餐後血糖",164,"mg/dL","[70][140]"],
+      ["20260606","PPG","餐後血糖",141,"mg/dL","[70][140]","20260606"],
       ["20230527","LDL","低密度脂蛋白膽固醇",95,"mg/dL","[][130]"],
       ["20231111","LDL","低密度脂蛋白膽固醇",82,"mg/dL","[][130]"],
       ["20240525","LDL","低密度脂蛋白膽固醇",109,"mg/dL","[][130]"],
@@ -458,81 +439,6 @@
       UAlb: { category: "腎功能", target: 3, direction: "below", label: "尿微白蛋白", unit: "", good: v => v < 3, warn: v => v < 30 },
       ALT: { category: "肝功能", target: 41, direction: "below", label: "ALT", unit: "U/L", good: v => v <= 41, warn: v => v <= 80 },
       AST: { category: "肝功能", target: 39, direction: "below", label: "AST", unit: "U/L", good: v => v <= 39, warn: v => v <= 80 }
-    };
-
-    const MEDICAL_STANDARDS = {
-      HbA1c: {
-        item: "HbA1c",
-        diagnostic: "正常 <5.7%；糖尿病前期 5.7-6.4%；糖尿病診斷 >=6.5%",
-        follow: "多數非懷孕成人常用 <7%，需依低血糖風險、年齡與共病個別化",
-        note: "貧血、血紅素變異、近期輸血等情況可能影響 HbA1c 解讀"
-      },
-      LDL: {
-        item: "LDL-C",
-        diagnostic: "一般理想常看 <100 mg/dL；130-159 邊緣偏高；>=160 偏高",
-        follow: "糖尿病或高心血管風險常討論 <70 mg/dL；極高風險可能更低",
-        note: "LDL 目標要合併年齡、血壓、抽菸、心血管病史與用藥討論"
-      },
-      EGFR: {
-        item: "eGFR",
-        diagnostic: "G1 >=90；G2 60-89；G3a 45-59；G3b 30-44；G4 15-29；G5 <15",
-        follow: "糖尿病追蹤通常希望維持 >=60，並觀察是否持續下降",
-        note: "eGFR <60 或尿白蛋白異常若持續 3 個月以上，需評估 CKD"
-      },
-      ALT: {
-        item: "ALT/GPT",
-        diagnostic: "常見成人上限約 40 U/L；本資料檢驗單參考上限為 41 U/L",
-        follow: "慢性肝炎、脂肪肝或用藥者依醫師設定追蹤頻率與目標",
-        note: "ALT 正常不代表完全沒有肝臟問題，仍要看病史、影像與病毒量等資料"
-      },
-      UAlb: {
-        item: "尿微白蛋白 / uACR",
-        diagnostic: "若為 uACR：A1 <30 mg/g；A2 30-299；A3 >=300",
-        follow: "糖尿病常規追蹤重點是尿白蛋白/肌酸酐比值 uACR",
-        note: "你目前資料是院端微白蛋白值，仍應優先看檢驗單參考值；若能取得 uACR 會更好"
-      },
-      TG: {
-        item: "三酸甘油脂",
-        diagnostic: "正常 <150 mg/dL；150-199 邊緣偏高；>=200 偏高",
-        follow: "通常希望 <150 mg/dL",
-        note: "空腹狀態、酒精、含糖飲料、精緻澱粉與血糖控制都會影響 TG"
-      },
-      FPG: {
-        item: "空腹血糖",
-        diagnostic: "正常 70-99 mg/dL；糖尿病前期 100-125；糖尿病診斷 >=126",
-        follow: "糖尿病餐前/空腹追蹤常用 80-130 mg/dL",
-        note: "診斷通常需複驗確認，並搭配症狀與其他檢查"
-      },
-      PPG: {
-        item: "餐後血糖",
-        diagnostic: "2 小時血糖正常 <140 mg/dL；140-199 糖耐量異常；>=200 符合糖尿病診斷門檻",
-        follow: "糖尿病餐後高峰常用 <180 mg/dL",
-        note: "請確認抽血時間是餐後多久；不同醫院可能紀錄為 PC 或飯後血糖"
-      },
-      CRE: {
-        item: "血清肌酸酐",
-        diagnostic: "常見男性約 0.7-1.3 mg/dL；女性約 0.6-1.1 mg/dL，依實驗室而異",
-        follow: "搭配 eGFR 看趨勢，比單看一次肌酸酐更有意義",
-        note: "肌肉量、脫水、藥物與急性疾病都會影響數值"
-      },
-      TC: {
-        item: "總膽固醇",
-        diagnostic: "一般希望 <200 mg/dL；200-239 邊緣偏高；>=240 偏高",
-        follow: "糖尿病治療更重視 LDL、non-HDL 或 ApoB，而非只看總膽固醇",
-        note: "總膽固醇需搭配 HDL、LDL、TG 一起看"
-      },
-      HDL: {
-        item: "HDL-C",
-        diagnostic: "男性 <40 或女性 <50 mg/dL 偏低；>=60 常被視為保護因子",
-        follow: "目前 HDL 不作為主要降脂治療目標，重點仍是整體心血管風險",
-        note: "運動、體重、戒菸與飲食型態會影響 HDL"
-      },
-      AST: {
-        item: "AST/GOT",
-        diagnostic: "常見上限約 40 U/L；以檢驗單參考值為準",
-        follow: "搭配 ALT、膽紅素、血小板、肝炎指標與影像判讀",
-        note: "AST 也可能受肌肉或心臟來源影響"
-      }
     };
 
     function normalizeCode(row) {
@@ -647,21 +553,6 @@
         .join("");
     }
 
-    function renderStandards() {
-      const order = ["HbA1c", "LDL", "EGFR", "ALT", "UAlb", "TG", "FPG", "PPG", "CRE", "TC", "HDL", "AST"];
-      document.getElementById("standardsBody").innerHTML = order
-        .filter(code => MEDICAL_STANDARDS[code])
-        .map(code => {
-          const s = MEDICAL_STANDARDS[code];
-          return `<tr>
-            <td><strong>${s.item}</strong></td>
-            <td>${s.diagnostic}</td>
-            <td>${s.follow}</td>
-            <td>${s.note}</td>
-          </tr>`;
-        }).join("");
-    }
-
     function chart(containerId, rows, series, opts = {}) {
       const points = series.flatMap(s => rows.filter(r => r.code === s.code).map(r => ({...r, color: s.color})));
       const el = document.getElementById(containerId);
@@ -703,7 +594,6 @@
           const st = statusFor(row);
           const def = DEFINITIONS[row.code];
           const target = def ? `${def.direction === "below" ? "<" : ">="}${def.target} ${def.unit}` : row.ref;
-          const standard = MEDICAL_STANDARDS[row.code]?.follow || MEDICAL_STANDARDS[row.code]?.diagnostic || "";
           return `<tr>
             <td>${ymd(row.date)}</td>
             <td>${ymd(row.reportDate || row.date)}</td>
@@ -711,7 +601,6 @@
             <td>${row.name}</td>
             <td><strong>${row.value}</strong> ${row.unit || ""}</td>
             <td>${target}</td>
-            <td>${standard}</td>
             <td><span class="pill ${st.cls}">${st.text}</span></td>
           </tr>`;
         }).join("");
@@ -721,7 +610,11 @@
       rows = rows.filter(r => r.date && Number.isFinite(r.value)).sort((a, b) => a.date.localeCompare(b.date));
       const minDate = rows[0]?.date || "";
       const maxDate = rows.at(-1)?.date || "";
-      document.getElementById("subtitle").textContent = `${sourceLabel}，檢驗日期 ${ymd(minDate)} 至 ${ymd(maxDate)}，共整理 ${rows.length} 筆可追蹤數值。`;
+      const maxReportDate = rows.reduce((latestDate, row) => {
+        const reportDate = row.reportDate || row.date || "";
+        return reportDate > latestDate ? reportDate : latestDate;
+      }, "");
+      document.getElementById("subtitle").textContent = `${sourceLabel}，檢驗日期 ${ymd(minDate)} 至 ${ymd(maxDate)}，最新報告日 ${ymd(maxReportDate)}，共整理 ${rows.length} 筆可追蹤數值。`;
       renderMetrics(rows);
       renderInsights(rows);
       chart("glucoseChart", rows, [
@@ -739,7 +632,6 @@
         { code: "CRE", name: "血清肌酸酐", color: "#e85d4f" },
         { code: "UAlb", name: "尿微白蛋白", color: "#7c6fbb" }
       ], { min: 0, targets: [60] });
-      renderStandards();
       renderTable(rows);
     }
 
@@ -757,7 +649,7 @@
       }
     });
 
-    render(DEFAULT_ROWS);
+    render(DEFAULT_ROWS, "已同步健康存摺醫療類_1150602.JSON，並補登 2026-06-06 餐後血糖");
   </script>
 </body>
 </html>
