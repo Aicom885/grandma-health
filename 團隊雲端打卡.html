@@ -333,11 +333,13 @@ async function reverseGeocode(lat, lng){
     const a = data.address || {};
     // 優先顯示：里 > 路/街 > 區 > 市
     const parts = [];
+    const city = a.city || a.county || a.state || '';
+    const district = a.city_district || a.town || '';
     if(a.neighbourhood) parts.push(a.neighbourhood);
     else if(a.suburb)   parts.push(a.suburb);
     if(a.road)          parts.push(a.road);
-    if(!parts.length && a.city_district) parts.push(a.city_district);
-    if(!parts.length && a.county)        parts.push(a.county);
+    if(district)        parts.push(district);
+    if(city)            parts.push(city);
     return parts.join(' ') || data.display_name?.split(',')[0] || '';
   }catch(e){ return ''; }
 }
