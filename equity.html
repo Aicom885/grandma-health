@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台股 AI 估值分析</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@700&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink: #16212B;
+  --ink-soft: #5B6770;
+  --ink-faint: #9BA5AC;
+  --paper: #F7F6F3;
+  --card: #FFFFFF;
+  --line: #D8DCDF;
+  --line-soft: #ECEAE5;
+  --cheap: #0A6B4A;
+  --cheap-bg: #DFF3EB;
+  --fair: #3A5068;
+  --fair-bg: #E4ECF4;
+  --rich: #8A4D10;
+  --rich-bg: #FAEDD8;
+  --mad: #992323;
+  --mad-bg: #FCEAEA;
+  --accent: #C23B22;
+  --warn-bg: #FFFBEB;
+  --warn-border: #F59E0B;
+  --warn-text: #92400E;
+  --ok-bg: #F0FDF4;
+  --ok-border: #22C55E;
+  --ok-text: #166534;
+  --radius: 10px;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  padding: 40px 20px 100px;
+}
+.wrap { max-width: 960px; margin: 0 auto; }
+
+.header { margin-bottom: 32px; }
+.eyebrow {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10.5px;
+  letter-spacing: 2px;
+  color: var(--accent);
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+h1 {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 28px;
+  font-weight: 700;
+  line-height: 1.25;
+  margin-bottom: 6px;
+}
+.sub { color: var(--ink-soft); font-size: 13px; }
+
+/* ── Input panel ── */
+.input-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 24px 28px;
+  margin-bottom: 16px;
+}
+.panel-title {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.input-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+}
+.field { flex: 1; min-width: 180px; }
+label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--ink-soft);
+  margin-bottom: 5px;
+  letter-spacing: 0.4px;
+}
+input[type="text"], input[type="number"] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 6px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--paper);
+  outline: none;
+  transition: border-color .15s;
+}
+input[type="text"]:focus,
+input[type="number"]:focus { border-color: var(--accent); }
+input.override { background: #EFF6FF; border-color: #93C5FD; }
+
+.override-panel {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 20px 28px;
+  margin-bottom: 20px;
+}
+.override-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  user-select: none;
+  font-size: 13px;
+  color: var(--ink-soft);
+}
+.override-toggle input[type="checkbox"] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+.override-fields {
+  display: none;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line-soft);
+}
+.override-fields.visible { display: grid; }
+.override-hint { font-size: 11px; color: var(--ink-faint); margin-top: 4px; }
+
+.btn-run {
+  padding: 9px 26px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-family: 'Noto Sans TC', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: opacity .15s;
+  height: 40px;
+  min-width: 100px;
+}
+.btn-run:hover { opacity: .85; }
+.btn-run:disabled { opacity: .45; cursor: not-allowed; }
+
+/* ── Steps ── */
+.steps { display: none; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.steps.visible { display: flex; }
+.step-badge {
+  display: flex; align-items: center; gap: 7px;
+  padding: 7px 13px; border-radius: 20px;
+  font-size: 12px; font-weight: 500;
+  background: var(--line-soft); color: var(--ink-soft);
+  transition: all .3s;
+}
+.step-badge.active { background: #FEF3C7; color: #92400E; }
+.step-badge.done   { background: var(--cheap-bg); color: var(--cheap); }
+.step-badge.error  { background: var(--mad-bg); color: var(--mad); }
+.step-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .5; }
+.step-badge.active .step-dot { animation: pulse 1s infinite; opacity: 1; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── Confidence badge ── */
+.confidence-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 6px;
+  font-size: 12.5px;
+  margin-bottom: 16px;
+  border-left: 4px solid;
+}
+.conf-high   { background: var(--ok-bg);   border-color: var(--ok-border);   color: var(--ok-text); }
+.conf-medium { background: var(--warn-bg); border-color: var(--warn-border); color: var(--warn-text); }
+.conf-low    { background: var(--mad-bg);  border-color: #F87171;            color: var(--mad); }
+.conf-icon { font-size: 15px; }
+.conf-text { flex: 1; line-height: 1.5; }
+.conf-label { font-weight: 700; margin-right: 6px; }
+
+/* ── Result card ── */
+.result-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 28px;
+  margin-bottom: 28px;
+}
+.result-card.hidden { display: none; }
+.card-header {
+  display: flex; align-items: baseline; gap: 12px;
+  margin-bottom: 16px; flex-wrap: wrap;
+}
+.ticker-name { font-family: 'Noto Serif TC', serif; font-size: 21px; font-weight: 700; }
+.ticker-code { font-family: 'IBM Plex Mono', monospace; font-size: 13px; color: var(--ink-soft); }
+.zone-badge {
+  margin-left: auto; padding: 5px 13px;
+  border-radius: 4px; font-size: 12.5px; font-weight: 700; letter-spacing: .5px;
+}
+.zone-cheap  { background: var(--cheap-bg); color: var(--cheap); }
+.zone-fair   { background: var(--fair-bg);  color: var(--fair);  }
+.zone-rich   { background: var(--rich-bg);  color: var(--rich);  }
+.zone-mad    { background: var(--mad-bg);   color: var(--mad);   }
+.zone-unknown{ background: var(--line-soft);color: var(--ink-soft);}
+
+.tiers {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 12px; margin-bottom: 16px;
+}
+@media(max-width:520px){ .tiers{ grid-template-columns:1fr; } }
+.tier { border-radius: 8px; padding: 14px 16px; text-align: center; }
+.tier-label { font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; margin-bottom: 4px; opacity: .75; }
+.tier-price { font-family: 'IBM Plex Mono', monospace; font-size: 22px; font-weight: 600; }
+.tier-desc  { font-size: 11px; opacity: .6; margin-top: 2px; }
+.tier-cheap { background: var(--cheap-bg); color: var(--cheap); }
+.tier-fair  { background: var(--fair-bg);  color: var(--fair); }
+.tier-rich  { background: var(--rich-bg);  color: var(--rich); }
+
+.current-price-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 11px 16px; background: var(--line-soft);
+  border-radius: 6px; margin-bottom: 14px; font-size: 13px;
+}
+.cp-label { color: var(--ink-soft); }
+.cp-val { font-family: 'IBM Plex Mono', monospace; font-size: 17px; font-weight: 600; color: var(--ink); }
+.cp-dist { margin-left: auto; font-size: 12px; }
+
+.inputs-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px; margin-bottom: 16px;
+  padding: 14px 16px; border: 1px solid var(--line-soft); border-radius: 6px;
+}
+.ig-item { font-size: 12px; }
+.ig-key  { color: var(--ink-faint); margin-bottom: 1px; }
+.ig-val  { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+.ig-val.overridden { color: var(--accent); }
+
+.narrative { border-top: 1px solid var(--line-soft); padding-top: 14px; }
+.narrative-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--ink-faint); text-transform: uppercase; margin-bottom: 8px;
+}
+.narrative-text { font-size: 13px; color: var(--ink-soft); line-height: 1.9; white-space: pre-wrap; }
+
+/* ── History table ── */
+.history-section { margin-top: 8px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.section-title { font-family: 'Noto Serif TC', serif; font-size: 16px; font-weight: 700; }
+.btn-clear {
+  padding: 5px 13px; border: 1.5px solid var(--line);
+  border-radius: 5px; background: transparent;
+  font-family: 'Noto Sans TC', sans-serif; font-size: 12px;
+  color: var(--ink-soft); cursor: pointer; transition: all .15s;
+}
+.btn-clear:hover { border-color: var(--mad); color: var(--mad); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+thead tr { border-bottom: 2px solid var(--ink); font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .6px; }
+th { padding: 7px 10px; text-align: right; font-weight: 500; }
+th:first-child { text-align: left; }
+tbody tr { border-bottom: 1px solid var(--line-soft); }
+tbody tr:hover { background: var(--line-soft); }
+td { padding: 9px 10px; text-align: right; }
+td:first-child { text-align: left; }
+td.mono { font-family: 'IBM Plex Mono', monospace; }
+
+.error-box {
+  background: var(--mad-bg); border: 1px solid #EAB0B0;
+  border-radius: 8px; padding: 14px 18px; color: var(--mad);
+  font-size: 13px; margin-bottom: 20px; display: none;
+}
+.error-box.visible { display: block; }
+
+/* ── Zone legend ── */
+.zone-legend {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+}
+.zone-legend-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 1px;
+  color: var(--ink-faint); text-transform: uppercase; margin-bottom: 12px;
+}
+.zone-legend-items {
+  display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px;
+}
+.zl-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 12px; border-radius: 20px; font-size: 12px;
+}
+.zl-cheap { background: var(--cheap-bg); color: var(--cheap); }
+.zl-fair  { background: var(--fair-bg);  color: var(--fair);  }
+.zl-rich  { background: var(--rich-bg);  color: var(--rich);  }
+.zl-mad   { background: var(--mad-bg);   color: var(--mad);   }
+.zl-dot   { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.zl-label { font-weight: 700; white-space: nowrap; }
+.zl-rule  { opacity: .75; white-space: nowrap; }
+.zone-legend-note {
+  font-size: 11.5px; color: var(--ink-soft); line-height: 1.6;
+  padding-top: 8px; border-top: 1px solid var(--line-soft);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="header">
+    <div class="eyebrow">Taiwan Equity Research · AI-Powered</div>
+    <h1>台股 AI 估值分析</h1>
+    <p class="sub">三步估值法：同業本益比錨點 → 外資法人 EPS 共識 → 三段式定價輸出</p>
+  </div>
+
+  <!-- 股票輸入 -->
+  <div class="input-panel">
+    <div class="panel-title">股票查詢</div>
+    <div class="input-row">
+      <div class="field">
+        <label>股票代號／名稱</label>
+        <input type="text" id="ticker" placeholder="例：2317 或 鴻海" />
+      </div>
+      <button class="btn-run" id="btnRun" onclick="runAnalysis()">開始分析</button>
+    </div>
+  </div>
+
+  <!-- 手動覆蓋輸入 -->
+  <div class="override-panel">
+    <label class="override-toggle">
+      <input type="checkbox" id="overrideToggle" onchange="toggleOverride()">
+      手動覆蓋 AI 數值（我有更準確的法人資料）
+    </label>
+    <div class="override-fields" id="overrideFields">
+      <div class="field">
+        <label>目前股價（元）</label>
+        <input type="number" class="override" id="ov_price" placeholder="AI 自動取得" step="0.5">
+      </div>
+      <div class="field">
+        <label id="lbl_eps">EPS 共識（元）</label>
+        <input type="number" class="override" id="ov_eps" placeholder="AI 自動搜尋" step="0.01">
+        <div class="override-hint">建議填外資法人共識，非單一機構</div>
+      </div>
+      <div class="field">
+        <label>同業 P/E 錨點（倍）</label>
+        <input type="number" class="override" id="ov_pe" placeholder="AI 自動搜尋" step="0.5">
+      </div>
+      <div class="field">
+        <label>安全邊際折扣（%）</label>
+        <input type="number" class="override" id="ov_disc" placeholder="預設 20" step="1" min="0" max="50">
+      </div>
+      <div class="field">
+        <label>Bull EPS（元，可選）</label>
+        <input type="number" class="override" id="ov_bull_eps" placeholder="不填則略過" step="0.01">
+      </div>
+      <div class="field">
+        <label>Bull P/E（倍，可選）</label>
+        <input type="number" class="override" id="ov_bull_pe" placeholder="不填則略過" step="0.5">
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 區間定義說明 -->
+  <div class="zone-legend">
+    <div class="zone-legend-title">估值區間定義</div>
+    <div class="zone-legend-items">
+      <div class="zl-item zl-cheap"><span class="zl-dot"></span><span class="zl-label">便宜區</span><span class="zl-rule">股價 ≤ 便宜價</span></div>
+      <div class="zl-item zl-fair"><span class="zl-dot"></span><span class="zl-label">合理區</span><span class="zl-rule">便宜價 &lt; 股價 ≤ 合理價</span></div>
+      <div class="zl-item zl-rich"><span class="zl-dot"></span><span class="zl-label">昂貴區</span><span class="zl-rule">合理價 &lt; 股價 ≤ 昂貴價</span></div>
+      <div class="zl-item zl-mad"><span class="zl-dot"></span><span class="zl-label">泡沫區</span><span class="zl-rule">股價 &gt; 昂貴價</span></div>
+    </div>
+    <div class="zone-legend-note">⚠️ 泡沫區不代表數據錯誤，可能是 P/E 錨點偏保守或 Bull Case 未取得，可手動覆蓋重新計算。</div>
+  </div>
+
+  <!-- 步驟追蹤 -->
+  <div class="steps" id="steps">
+    <div class="step-badge" id="s1"><div class="step-dot"></div>Step 1：同業 P/E 錨點</div>
+    <div class="step-badge" id="s2"><div class="step-dot"></div>Step 2：外資 EPS 共識</div>
+    <div class="step-badge" id="s3"><div class="step-dot"></div>Step 3：三段式定價</div>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <!-- 結果卡片 -->
+  <div class="result-card hidden" id="resultCard">
+    <div class="card-header">
+      <span class="ticker-name" id="rName"></span>
+      <span class="ticker-code" id="rCode"></span>
+      <span class="zone-badge" id="rZone"></span>
+    </div>
+
+    <!-- 信心度警示 -->
+    <div class="confidence-bar" id="confBar">
+      <span class="conf-icon" id="confIcon"></span>
+      <span class="conf-text"><span class="conf-label" id="confLabel"></span><span id="confMsg"></span></span>
+    </div>
+
+    <div class="current-price-row">
+      <span class="cp-label">目前股價</span>
+      <span class="cp-val" id="rCurrent"></span>
+      <span class="cp-dist" id="rDist"></span>
+    </div>
+    <div class="tiers">
+      <div class="tier tier-cheap">
+        <div class="tier-label">便宜價</div>
+        <div class="tier-price" id="rCheap">—</div>
+        <div class="tier-desc">Burry 防線・安全邊際</div>
+      </div>
+      <div class="tier tier-fair">
+        <div class="tier-label">合理價</div>
+        <div class="tier-price" id="rFair">—</div>
+        <div class="tier-desc">法人共識・同業錨定</div>
+      </div>
+      <div class="tier tier-rich">
+        <div class="tier-label">昂貴價</div>
+        <div class="tier-price" id="rRich">—</div>
+        <div class="tier-desc">樂觀情境・Bull Case</div>
+      </div>
+    </div>
+    <div class="inputs-grid" id="rInputs"></div>
+    <div class="narrative">
+      <div class="narrative-title">分析摘要</div>
+      <div class="narrative-text" id="rNarrative"></div>
+    </div>
+  </div>
+
+  <!-- 歷史紀錄 -->
+  <div class="history-section" id="historySection" style="display:none">
+    <div class="section-header">
+      <div class="section-title">歷史紀錄</div>
+      <button class="btn-clear" onclick="clearHistory()">清空全部</button>
+    </div>
+    <div class="table-wrap">
+      <table id="histTable">
+        <thead>
+          <tr>
+            <th>股票</th>
+            <th>目前價</th>
+            <th>便宜價</th>
+            <th>合理價</th>
+            <th>昂貴價</th>
+            <th>EPS (<span class="yr"></span>E)</th>
+            <th>同業 P/E</th>
+            <th>信心度</th>
+            <th>所在區間</th>
+            <th>日期</th>
+          </tr>
+        </thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const WORKER_URL = 'https://equity-proxy.shainn.workers.dev';
+const STORAGE_KEY = 'equity_history_v3';
+const TARGET_YEAR = new Date().getFullYear();   // 自動取當年，跨年自動更新
+let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+renderHistory();
+
+function toggleOverride() {
+  const on = document.getElementById('overrideToggle').checked;
+  document.getElementById('overrideFields').className = 'override-fields' + (on ? ' visible' : '');
+}
+
+function getOverrides() {
+  if (!document.getElementById('overrideToggle').checked) return {};
+  const g = id => { const v = document.getElementById(id).value.trim(); return v !== '' ? parseFloat(v) : null; };
+  return {
+    ov_price:    g('ov_price'),
+    ov_eps:      g('ov_eps'),
+    ov_pe:       g('ov_pe'),
+    ov_disc:     g('ov_disc'),
+    ov_bull_eps: g('ov_bull_eps'),
+    ov_bull_pe:  g('ov_bull_pe'),
+  };
+}
+
+async function runAnalysis() {
+  const ticker = document.getElementById('ticker').value.trim();
+  if (!ticker) { alert('請輸入股票代號或名稱'); return; }
+
+  setRunning(true);
+  setError('');
+  setSteps('idle');
+  document.getElementById('resultCard').classList.add('hidden');
+
+  try {
+    setSteps('s1');
+    await delay(700);
+    setSteps('s2');
+    await delay(600);
+    setSteps('s3');
+
+    const overrides = getOverrides();
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticker, overrides, target_year: TARGET_YEAR })
+    });
+
+    if (!res.ok) {
+      const errText = await res.text();
+      throw new Error(`Worker 回傳 ${res.status}：${errText}`);
+    }
+
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // 套用手動覆蓋：重新計算
+    const hasOverride = Object.values(overrides).some(v => v !== null);
+    if (hasOverride) {
+      if (overrides.ov_price    !== null) data.current_price = overrides.ov_price;
+      if (overrides.ov_eps      !== null) data.eps_forward      = overrides.ov_eps;
+      if (overrides.ov_pe       !== null) data.peer_pe       = overrides.ov_pe;
+      if (overrides.ov_disc     !== null) data.discount      = overrides.ov_disc;
+      if (overrides.ov_bull_eps !== null) data.bull_eps      = overrides.ov_bull_eps;
+      if (overrides.ov_bull_pe  !== null) data.bull_pe       = overrides.ov_bull_pe;
+
+      // 重算三價
+      const disc = (data.discount ?? 20) / 100;
+      data.fair_price  = +(data.eps_forward * data.peer_pe).toFixed(1);
+      data.cheap_price = +(data.fair_price * (1 - disc)).toFixed(1);
+      if (data.bull_eps && data.bull_pe) {
+        data.rich_price = +(data.bull_eps * data.bull_pe).toFixed(1);
+      } else {
+        data.rich_price = +(data.fair_price * 1.3).toFixed(1);
+      }
+      data._overridden = true;
+    }
+
+    setSteps('done');
+    renderResult(data);
+    saveHistory(data);
+
+  } catch (e) {
+    setSteps('error');
+    setError('分析失敗：' + e.message);
+  } finally {
+    setRunning(false);
+  }
+}
+
+document.getElementById('ticker').addEventListener('keydown', e => {
+  if (e.key === 'Enter') runAnalysis();
+});
+
+// ── 信心度判斷 ────────────────────────────────────────
+function calcConfidence(d) {
+  // 若手動覆蓋視為高信心
+  if (d._overridden) return { level: 'high', label: '高信心', msg: '使用手動輸入數值，計算結果可信賴。建議定期更新法人共識。' };
+
+  const score = d.confidence_score ?? null;
+  if (score !== null) {
+    if (score >= 70) return { level: 'high',   label: '高信心', msg: d.confidence_note || '外資法人 EPS 共識來源充分，同業 P/E 錨點穩定。' };
+    if (score >= 40) return { level: 'medium', label: '中信心', msg: d.confidence_note || '部分數據來自單一來源或預估值，建議交叉核對後使用。' };
+  }
+  // 無分數 fallback：看資料來源
+  const src = (d.source || '').toLowerCase();
+  if (src.includes('morgan') || src.includes('goldman') || src.includes('citi') || src.includes('法人')) {
+    return { level: 'medium', label: '中信心', msg: '搜尋到部分法人資料，但 AI 聯網精準度有限，建議手動核對 EPS 與同業 P/E。' };
+  }
+  return { level: 'low', label: '低信心', msg: '未能確認外資法人 EPS 共識來源。請使用手動覆蓋輸入更可靠的數值後重新計算。' };
+}
+
+// ── 渲染結果 ──────────────────────────────────────────
+function renderResult(d) {
+  const card = document.getElementById('resultCard');
+  card.classList.remove('hidden');
+
+  document.getElementById('rName').textContent = d.name || d.ticker;
+  document.getElementById('rCode').textContent = d.ticker || '';
+
+  const zone = classifyZone(d.current_price, d.cheap_price, d.fair_price, d.rich_price);
+  const zoneEl = document.getElementById('rZone');
+  zoneEl.textContent = zone.label;
+  zoneEl.className = 'zone-badge ' + zone.cls;
+
+  // 信心度
+  const conf = calcConfidence(d);
+  const bar = document.getElementById('confBar');
+  bar.className = 'confidence-bar conf-' + conf.level;
+  document.getElementById('confIcon').textContent = conf.level === 'high' ? '✅' : conf.level === 'medium' ? '⚠️' : '🔴';
+  document.getElementById('confLabel').textContent = conf.label + '：';
+  // 高信心但泡沫區：加說明避免誤解
+  let confMsg = conf.msg;
+  if (conf.level === 'high' && zone.cls === 'zone-mad') {
+    confMsg += ' ⚠️ 注意：股價高於昂貴價，可能是同業 P/E 錨點偏保守或 Bull Case 未取得，建議手動覆蓋 P/E 重新計算。';
+  }
+  document.getElementById('confMsg').textContent = confMsg;
+
+  document.getElementById('rCurrent').textContent = fmtPrice(d.current_price);
+  const distPct = d.fair_price ? ((d.current_price - d.fair_price) / d.fair_price * 100).toFixed(1) : null;
+  document.getElementById('rDist').textContent = distPct !== null
+    ? (distPct > 0 ? `↑ 高於合理價 ${distPct}%` : `↓ 低於合理價 ${Math.abs(distPct)}%`)
+    : '';
+
+  document.getElementById('rCheap').textContent = fmtPrice(d.cheap_price);
+  document.getElementById('rFair').textContent  = fmtPrice(d.fair_price);
+  document.getElementById('rRich').textContent  = fmtPrice(d.rich_price);
+
+  const ovr = d._overridden;
+  const inputs = [
+    { k: `${TARGET_YEAR}E EPS`,  v: d.eps_forward  ? `${d.eps_forward} 元`  : '—', ov: ovr && document.getElementById('ov_eps').value },
+    { k: '同業 P/E',   v: d.peer_pe   ? `${d.peer_pe} 倍`   : '—', ov: ovr && document.getElementById('ov_pe').value },
+    { k: '安全邊際',   v: d.discount  ? `${d.discount}%`     : '20%', ov: false },
+    { k: 'Bull EPS',  v: d.bull_eps  ? `${d.bull_eps} 元`  : '—', ov: false },
+    { k: 'Bull P/E',  v: d.bull_pe   ? `${d.bull_pe} 倍`   : '—', ov: false },
+    { k: '資料來源',  v: d.source    || '網路搜尋', ov: false },
+  ];
+  document.getElementById('rInputs').innerHTML = inputs.map(i => `
+    <div class="ig-item">
+      <div class="ig-key">${i.k}</div>
+      <div class="ig-val${i.ov ? ' overridden' : ''}">${i.v}${i.ov ? ' ✏️' : ''}</div>
+    </div>`).join('');
+
+  document.getElementById('rNarrative').textContent = d.narrative || '';
+  card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── 歷史 ──────────────────────────────────────────────
+function saveHistory(d) {
+  const conf = calcConfidence(d);
+  const row = { ...d, analyzed_at: new Date().toLocaleDateString('zh-TW'), _conf: conf.level, _conf_label: conf.label };
+  history = [row, ...history.filter(r => r.ticker !== d.ticker)].slice(0, 30);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+  renderHistory();
+}
+
+// 頁面載入時填入動態年份
+document.querySelectorAll('.yr').forEach(el => el.textContent = TARGET_YEAR);
+document.getElementById('lbl_eps').textContent = `${TARGET_YEAR}E EPS 共識（元）`;
+
+function renderHistory() {
+  const tbody = document.getElementById('histBody');
+  const sec = document.getElementById('historySection');
+  if (!history.length) { sec.style.display = 'none'; return; }
+  sec.style.display = 'block';
+  const confColor = { high: 'var(--cheap)', medium: 'var(--rich)', low: 'var(--mad)' };
+  tbody.innerHTML = history.map(d => {
+    const zone = classifyZone(d.current_price, d.cheap_price, d.fair_price, d.rich_price);
+    const cl = d._conf || 'medium';
+    return `<tr>
+      <td><b>${d.name || d.ticker}</b> <span style="color:var(--ink-faint);font-size:11px">${d.ticker||''}</span></td>
+      <td class="mono">${fmtPrice(d.current_price)}</td>
+      <td class="mono" style="color:var(--cheap)">${fmtPrice(d.cheap_price)}</td>
+      <td class="mono" style="color:var(--fair)">${fmtPrice(d.fair_price)}</td>
+      <td class="mono" style="color:var(--rich)">${fmtPrice(d.rich_price)}</td>
+      <td class="mono">${d.eps_forward ?? '—'}</td>
+      <td class="mono">${d.peer_pe ?? '—'}</td>
+      <td style="color:${confColor[cl]};font-size:11.5px;font-weight:700">${d._conf_label||'—'}</td>
+      <td><span class="zone-badge ${zone.cls}" style="font-size:11px;padding:3px 8px">${zone.label}</span></td>
+      <td style="color:var(--ink-faint)">${d.analyzed_at}</td>
+    </tr>`;
+  }).join('');
+}
+
+function clearHistory() {
+  if (!confirm('確定清空所有估值紀錄？')) return;
+  history = [];
+  localStorage.removeItem(STORAGE_KEY);
+  renderHistory();
+}
+
+// ── 工具 ──────────────────────────────────────────────
+function classifyZone(cur, cheap, fair, rich) {
+  if (!cur) return { label: '待確認', cls: 'zone-unknown' };
+  if (cur <= cheap) return { label: '便宜區', cls: 'zone-cheap' };
+  if (cur <= fair)  return { label: '合理區', cls: 'zone-fair' };
+  if (cur <= rich)  return { label: '昂貴區', cls: 'zone-rich' };
+  return { label: '泡沫區', cls: 'zone-mad' };
+}
+function fmtPrice(v) { return v != null ? `$${Number(v).toFixed(1)}` : '—'; }
+function delay(ms)   { return new Promise(r => setTimeout(r, ms)); }
+
+function setRunning(on) {
+  document.getElementById('btnRun').disabled = on;
+  document.getElementById('btnRun').textContent = on ? '分析中…' : '開始分析';
+  document.getElementById('steps').className = 'steps' + (on ? ' visible' : '');
+}
+function setSteps(state) {
+  ['s1','s2','s3'].forEach(id => document.getElementById(id).className = 'step-badge');
+  if (state === 'idle') return;
+  if (state === 'done')  { ['s1','s2','s3'].forEach(id => document.getElementById(id).classList.add('done')); return; }
+  if (state === 'error') { ['s1','s2','s3'].forEach(id => document.getElementById(id).classList.add('error')); return; }
+  const order = ['s1','s2','s3'];
+  const idx = order.indexOf(state);
+  order.forEach((id, i) => {
+    if (i < idx) document.getElementById(id).classList.add('done');
+    else if (i === idx) document.getElementById(id).classList.add('active');
+  });
+}
+function setError(msg) {
+  const el = document.getElementById('errorBox');
+  el.textContent = msg;
+  el.className = 'error-box' + (msg ? ' visible' : '');
+}
+</script>
+</body>
+</html>
