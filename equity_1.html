@@ -264,14 +264,14 @@ input.override { background: #EFF6FF; border-color: #93C5FD; }
   color: var(--ink-soft); cursor: pointer; transition: all .15s;
 }
 .btn-clear:hover { border-color: var(--mad); color: var(--mad); }
-.table-wrap { overflow-x: auto; }
+.table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 thead tr { border-bottom: 2px solid var(--ink); font-size: 11px; color: var(--ink-soft); text-transform: uppercase; letter-spacing: .6px; }
-th { padding: 7px 10px; text-align: right; font-weight: 500; }
+th { padding: 7px 10px; text-align: right; font-weight: 500; white-space: nowrap; }
 th:first-child { text-align: left; }
 tbody tr { border-bottom: 1px solid var(--line-soft); }
 tbody tr:hover { background: var(--line-soft); }
-td { padding: 9px 10px; text-align: right; }
+td { padding: 9px 10px; text-align: right; white-space: nowrap; }
 td:first-child { text-align: left; }
 td.mono { font-family: 'IBM Plex Mono', monospace; }
 
