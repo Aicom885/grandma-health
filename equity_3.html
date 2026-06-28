@@ -176,6 +176,34 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
 
 .error-box{background:var(--mad-bg);border:1px solid #EAB0B0;border-radius:8px;padding:12px 16px;color:var(--mad);font-size:13px;margin-bottom:16px;display:none;}
 .error-box.visible{display:block;}
+
+/* ── Example panel ── */
+.example-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);margin-bottom:16px;overflow:hidden;}
+.example-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;cursor:pointer;user-select:none;border-bottom:1px solid transparent;transition:background .15s;}
+.example-header:hover{background:var(--line-soft);}
+.example-header.open{border-bottom-color:var(--line-soft);}
+.example-header-left{display:flex;align-items:center;gap:8px;}
+.example-eyebrow{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--accent);text-transform:uppercase;}
+.example-title{font-size:13px;font-weight:600;color:var(--ink);}
+.example-chevron{font-size:13px;color:var(--ink-faint);transition:transform .2s;}
+.example-chevron.open{transform:rotate(180deg);}
+.example-body{display:none;padding:18px 20px;}
+.example-body.open{display:block;}
+.ex-step{margin-bottom:18px;}
+.ex-step:last-child{margin-bottom:0;}
+.ex-step-title{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.8px;color:var(--ink-faint);text-transform:uppercase;margin-bottom:8px;}
+.ex-step-dot{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.ex-s1{background:var(--fair);}
+.ex-s2{background:var(--rich);}
+.ex-s3{background:var(--cheap);}
+.ex-content{font-size:12.5px;color:var(--ink-soft);line-height:1.85;background:var(--paper);border-radius:6px;padding:12px 14px;border-left:3px solid var(--line);}
+.ex-content b{color:var(--ink);font-weight:600;}
+.ex-verdict{margin-top:14px;padding:12px 14px;background:#FFF8F0;border-left:3px solid var(--rich);border-radius:6px;font-size:12.5px;color:var(--rich);line-height:1.8;}
+.ex-verdict b{font-weight:700;}
+.ex-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+.ex-table th{text-align:left;padding:5px 8px;background:var(--line-soft);color:var(--ink-soft);font-weight:500;font-size:11px;}
+.ex-table td{padding:5px 8px;border-bottom:1px solid var(--line-soft);}
+.ex-table td:last-child{font-family:'IBM Plex Mono',monospace;font-weight:500;}
 </style>
 </head>
 <body>
@@ -240,6 +268,69 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
         <label>Bull P/E（倍，可選）</label>
         <input type="number" class="override" id="ov_bull_pe" placeholder="不填則略過" step="0.5">
       </div>
+    </div>
+  </div>
+
+
+  <!-- 分析範例說明 -->
+  <div class="example-panel">
+    <div class="example-header" onclick="toggleExample(this)">
+      <div class="example-header-left">
+        <span class="example-eyebrow">範例</span>
+        <span class="example-title">AI 如何執行三步估值？以微星 2377 為例</span>
+      </div>
+      <span class="example-chevron">▼</span>
+    </div>
+    <div class="example-body">
+
+      <div class="ex-step">
+        <div class="ex-step-title"><span class="ex-step-dot ex-s1">1</span>同業 P/E 錨點搜尋</div>
+        <div class="ex-content">
+微星屬「電腦及週邊設備」電競／PC 硬體股，最直接可比同業：<br><br>
+• <b>技嘉 (2376)</b>：收盤 342 元，FactSet 2026E EPS 共識 22.25 元 → 預估 P/E 約 <b>15.4 倍</b><br>
+• <b>華碩 (2357)</b>：報價 791 元，15 位分析師 2026E EPS 中位數 48 元 → 預估 P/E 約 <b>16.5 倍</b><br>
+• <b>宏碁 (2353)</b>：38 元，本土法人預估 EPS 1.78 元 → P/E 約 21.3 倍（毛利結構差異大，僅列參考）<br><br>
+錨點本益比取技嘉／華碩平均 ≈ <b>16 倍</b>（宏碁獲利結構不同，不納入主要平均）
+        </div>
+      </div>
+
+      <div class="ex-step">
+        <div class="ex-step-title"><span class="ex-step-dot ex-s2">2</span>外資法人 EPS 探勘</div>
+        <div class="ex-content">
+外資覆蓋：<b>偏薄</b>。搜尋摩根士丹利、高盛、摩根大通、瑞銀，僅查到交易盤買賣超，找不到具名外資正式預估報告。微星市值約 NT$1,200 億（∼USD 40 億），落在外資主動覆蓋的門檻邊緣，主力研究來自台灣本土券商。<br><br>
+• <b>富邦證券（2026/05）</b>：中立評等、目標價 95 元、<b>2026E EPS 8.22 元</b><br>
+• <b>法人共識區間</b>（經濟日報引述）：2026E EPS 8～10 元<br>
+• Q1 2026 實際 EPS 已達 4.04 元（年增 218%），進度超標，但尚未見正式上修<br><br>
+→ 採用 <b>EPS = 8.22 元</b>為共識基準，<b>10 元</b>為共識上緣（樂觀情境）<br>
+<span style="color:var(--rich)">⚠ 信心度：中等（本土券商共識紮實，缺乏外資交叉驗證，Q1 超標後存在上修空間未反映風險）</span>
+        </div>
+      </div>
+
+      <div class="ex-step">
+        <div class="ex-step-title"><span class="ex-step-dot ex-s3">3</span>三段式定價計算</div>
+        <div class="ex-content">
+          <table class="ex-table">
+            <tr><th>項目</th><th>數值</th></tr>
+            <tr><td>股票</td><td>微星 2377</td></tr>
+            <tr><td>現價（2026/06/15 收盤）</td><td>140.0 元</td></tr>
+            <tr><td>便宜價（Burry 防線）</td><td style="color:var(--cheap);font-weight:700">105.2 元</td></tr>
+            <tr><td>合理價（法人共識）</td><td style="color:var(--fair);font-weight:700">131.5 元</td></tr>
+            <tr><td>昂貴價（瘋狂價）</td><td style="color:var(--rich);font-weight:700">224 元</td></tr>
+            <tr><td>EPS 依據</td><td>共識 8.22 元 ／ 樂觀上緣 10 元</td></tr>
+            <tr><td>同業錨點</td><td>16 倍（技嘉 15.4x ／ 華碩 16.5x）</td></tr>
+          </table>
+          <div style="font-size:12px;color:var(--ink-faint);margin-top:8px;line-height:1.7">
+            合理價 = 8.22 × 16 = <b style="color:var(--ink)">131.5 元</b>　
+            便宜價 = 131.5 × 0.8 = <b style="color:var(--ink)">105.2 元</b>　
+            昂貴價 = 10 × (16 × 1.4) = <b style="color:var(--ink)">224 元</b>
+          </div>
+        </div>
+        <div class="ex-verdict">
+          <b>目前股價區間：合理至昂貴（偏低端），距合理價 +6.5%</b><br>
+          現價 140 元已站上法人共識合理價，談不上便宜，但離 224 元瘋狂價還有 60% 空間。買進本質上是賭「Q1 毛利回升能延續到下半年、法人會上修 EPS 到 10 元甚至更高」——如果記憶體／GPU 短缺緩解或電競需求不如預期，回測 105 元甚至更低的風險不小。短線追高風險高於潛在報酬，等回測合理價附近或法人正式上修後再進場較划算。
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -322,6 +413,7 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
             <th>合理價</th>
             <th>昂貴價</th>
             <th>EPS (<span class="yr"></span>E)</th>
+            <th>最新季 EPS</th>
             <th>同業 P/E</th>
             <th>與合理價差</th>
             <th>信心度</th>
@@ -383,6 +475,7 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
           <th>合理價</th>
           <th>昂貴價</th>
           <th>EPS (<span class="yr"></span>E)</th>
+          <th>最新季 EPS</th>
           <th>同業 P/E</th>
           <th>信心度</th>
           <th>區間</th>
@@ -399,6 +492,17 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
 
 <script>
 // ══ 常數 ══════════════════════════════════════════════
+
+// ── 範例面板開關 ──────────────────────────────────────
+function toggleExample(header) {
+  const body = header.nextElementSibling;
+  const chevron = header.querySelector('.example-chevron');
+  const isOpen = body.classList.contains('open');
+  body.className = 'example-body' + (isOpen ? '' : ' open');
+  header.className = 'example-header' + (isOpen ? '' : ' open');
+  chevron.className = 'example-chevron' + (isOpen ? '' : ' open');
+}
+
 const WORKER_URL   = 'https://equity-proxy.shainn.workers.dev';
 const STORAGE_KEY  = 'equity_history_v4';
 const REMIND_KEY   = 'equity_reminders_v1';
@@ -548,6 +652,7 @@ function renderCompare() {
       <td class="mono" style="color:var(--fair)">${fmtPrice(d.fair_price)}</td>
       <td class="mono" style="color:var(--rich)">${fmtPrice(d.rich_price)}</td>
       <td class="mono">${d.eps_forward??'—'}</td>
+      <td class="mono">${d.eps_latest_quarter != null ? d.eps_latest_quarter + '(' + (d.eps_latest_quarter_label||'') + ')' : '—'}</td>
       <td class="mono">${d.peer_pe??'—'}</td>
       <td class="mono" style="color:${distColor};font-weight:600">${distTxt}</td>
       <td style="color:${confColor[conf.level]};font-size:11.5px;font-weight:700">${conf.label}</td>
@@ -729,7 +834,8 @@ function renderResult(d) {
 
   const ovr = d._overridden;
   document.getElementById('rInputs').innerHTML = [
-    { k:`${TARGET_YEAR}E EPS`, v: d.eps_forward ? `${d.eps_forward} 元` : '—', ov: ovr && document.getElementById('ov_eps').value },
+    { k:`${TARGET_YEAR}E EPS（全年共識）`, v: d.eps_forward ? `${d.eps_forward} 元` : '—', ov: ovr && document.getElementById('ov_eps').value },
+    { k: '最新季報 EPS', v: d.eps_latest_quarter != null ? `${d.eps_latest_quarter} 元（${d.eps_latest_quarter_label||''}，年化 ${d.eps_annualized != null ? d.eps_annualized.toFixed(2) : '—'} 元）` : '—', ov: false },
     { k:'同業 P/E',  v: d.peer_pe  ? `${d.peer_pe} 倍`  : '—', ov: ovr && document.getElementById('ov_pe').value },
     { k:'安全邊際',  v: d.discount ? `${d.discount}%`    : '20%', ov:false },
     { k:'Bull EPS',  v: d.bull_eps ? `${d.bull_eps} 元` : '—', ov:false },
@@ -768,6 +874,7 @@ function renderHistory() {
       <td class="mono" style="color:var(--fair)">${fmtPrice(d.fair_price)}</td>
       <td class="mono" style="color:var(--rich)">${fmtPrice(d.rich_price)}</td>
       <td class="mono">${d.eps_forward??'—'}</td>
+      <td class="mono">${d.eps_latest_quarter != null ? d.eps_latest_quarter + '(' + (d.eps_latest_quarter_label||'') + ')' : '—'}</td>
       <td class="mono">${d.peer_pe??'—'}</td>
       <td style="color:${confColor[cl]};font-size:11.5px;font-weight:700">${d._conf_label||'—'}</td>
       <td><span class="zone-badge ${zone.cls}" style="font-size:11px;padding:3px 8px">${zone.label}</span></td>
