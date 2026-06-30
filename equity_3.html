@@ -429,32 +429,31 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
 <!-- ══ 定期提醒 ══ -->
 <div class="tab-panel" id="tab-reminder">
   <div class="panel-card">
-    <div class="panel-title">新增提醒</div>
+    <div class="panel-title">Telegram 自動推播設定</div>
+    <div class="hint" style="margin-bottom:14px">
+      ✅ 已連接 Telegram 機器人。加入下方追蹤清單的股票，會由 Cloudflare 排程自動分析並推播到你的 Telegram，<b>不需要保持頁面開啟</b>，手機關閉瀏覽器也會收到。
+    </div>
     <div class="input-row" style="margin-bottom:12px">
       <div class="field">
         <label>股票代號／名稱</label>
-        <input type="text" id="remTicker" placeholder="例：2317">
+        <input type="text" id="watchTicker" placeholder="例：2317">
       </div>
-      <div class="field" style="max-width:160px">
-        <label>提醒時間</label>
-        <input type="time" id="remTime" value="09:00">
-      </div>
-      <div class="field" style="max-width:200px">
-        <label>重複週期</label>
-        <select id="remFreq" style="width:100%;padding:8px 12px;border:1.5px solid var(--line);border-radius:6px;font-size:14px;background:var(--paper);outline:none;">
-          <option value="daily">每天</option>
-          <option value="weekday">週一至週五</option>
-          <option value="weekly">每週一</option>
-        </select>
-      </div>
-      <button class="btn btn-primary" onclick="addReminder()">新增</button>
+      <button class="btn btn-primary" onclick="addWatchItem()">加入追蹤清單</button>
     </div>
-    <div class="hint">⚠️ 提醒功能使用瀏覽器通知，需授權且頁面必須保持開啟。建議搭配 GitHub Pages 常駐分頁使用。</div>
+    <button class="btn btn-secondary" onclick="testTelegramNotify()">📤 發送測試推播</button>
   </div>
 
   <div class="panel-card">
-    <div class="panel-title">已設定的提醒</div>
-    <div class="reminder-list" id="reminderList"></div>
+    <div class="panel-title">追蹤清單（推播時會分析以下股票）</div>
+    <div class="reminder-list" id="watchList"></div>
+  </div>
+
+  <div class="panel-card">
+    <div class="panel-title">推播時間設定</div>
+    <div class="hint">
+      推播時間由 Cloudflare Worker 的 <b>Cron Trigger</b> 控制，無法在此頁面調整。<br>
+      如需更改時間，請至 Cloudflare Dashboard → equity-proxy → Settings → Triggers → Cron Triggers 修改排程（例如 <code>0 1 * * *</code> 為台灣時間每天早上 9 點）。
+    </div>
   </div>
 </div>
 
@@ -505,22 +504,19 @@ function toggleExample(header) {
 
 const WORKER_URL   = 'https://equity-proxy.shainn.workers.dev';
 const STORAGE_KEY  = 'equity_history_v4';
-const REMIND_KEY   = 'equity_reminders_v1';
 const COMPARE_KEY  = 'equity_compare_v1';
 const TARGET_YEAR  = new Date().getFullYear();
 
 // ══ 狀態 ══════════════════════════════════════════════
 let history   = JSON.parse(localStorage.getItem(STORAGE_KEY)  || '[]');
-let reminders = JSON.parse(localStorage.getItem(REMIND_KEY)   || '[]');
 let compareData = JSON.parse(localStorage.getItem(COMPARE_KEY) || '[]');
 
 // ══ 初始化 ════════════════════════════════════════════
 document.querySelectorAll('.yr').forEach(el => el.textContent = TARGET_YEAR);
 document.getElementById('lbl_eps').textContent = `${TARGET_YEAR}E EPS 共識（元）`;
 renderHistory();
-renderReminders();
 renderCompare();
-initReminderChecker();
+loadWatchlist();
 
 // ══ 分頁切換 ══════════════════════════════════════════
 function switchTab(name) {
@@ -661,97 +657,69 @@ function renderCompare() {
   }).join('');
 }
 
-// ══ 定期提醒 ══════════════════════════════════════════
-async function addReminder() {
-  const ticker = document.getElementById('remTicker').value.trim();
-  const time   = document.getElementById('remTime').value;
-  const freq   = document.getElementById('remFreq').value;
-  if (!ticker) { alert('請輸入股票代號'); return; }
+// ══ 追蹤清單（Telegram 自動推播）══════════════════════
+let watchlist = [];
 
-  // 申請通知權限
-  if ('Notification' in window) {
-    const perm = await Notification.requestPermission();
-    if (perm !== 'granted') {
-      alert('請允許瀏覽器通知權限，提醒功能才能運作。');
-      return;
-    }
+async function loadWatchlist() {
+  try {
+    const res = await fetch(WORKER_URL + '/watchlist');
+    if (!res.ok) throw new Error('讀取失敗');
+    watchlist = await res.json();
+  } catch(e) {
+    watchlist = [];
   }
-
-  const id = Date.now();
-  reminders.push({ id, ticker, time, freq, lastFired: null });
-  localStorage.setItem(REMIND_KEY, JSON.stringify(reminders));
-  document.getElementById('remTicker').value = '';
-  renderReminders();
+  renderWatchlist();
 }
 
-function deleteReminder(id) {
-  reminders = reminders.filter(r => r.id !== id);
-  localStorage.setItem(REMIND_KEY, JSON.stringify(reminders));
-  renderReminders();
+async function saveWatchlist() {
+  try {
+    await fetch(WORKER_URL + '/watchlist', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ items: watchlist })
+    });
+  } catch(e) {
+    alert('儲存追蹤清單失敗：' + e.message);
+  }
 }
 
-const freqLabel = { daily:'每天', weekday:'週一～五', weekly:'每週一' };
+function addWatchItem() {
+  const ticker = document.getElementById('watchTicker').value.trim();
+  if (!ticker) { alert('請輸入股票代號'); return; }
+  if (watchlist.some(w => w.ticker === ticker)) { alert('已在追蹤清單中'); return; }
+  watchlist.push({ ticker, addedAt: new Date().toLocaleDateString('zh-TW') });
+  document.getElementById('watchTicker').value = '';
+  renderWatchlist();
+  saveWatchlist();
+}
 
-function renderReminders() {
-  const el = document.getElementById('reminderList');
-  if (!reminders.length) {
-    el.innerHTML = '<div class="reminder-empty">尚未設定任何提醒</div>';
+function removeWatchItem(ticker) {
+  watchlist = watchlist.filter(w => w.ticker !== ticker);
+  renderWatchlist();
+  saveWatchlist();
+}
+
+function renderWatchlist() {
+  const el = document.getElementById('watchList');
+  if (!watchlist.length) {
+    el.innerHTML = '<div class="reminder-empty">尚未加入任何追蹤股票</div>';
     return;
   }
-  el.innerHTML = reminders.map(r => `
+  el.innerHTML = watchlist.map(w => `
     <div class="reminder-item">
-      <span class="ri-name">📢 ${r.ticker}</span>
-      <span class="ri-time">${r.time}</span>
-      <span style="font-size:12px;color:var(--ink-faint)">${freqLabel[r.freq]||r.freq}</span>
-      <button class="ri-del" onclick="deleteReminder(${r.id})" title="刪除">✕</button>
+      <span class="ri-name">📈 ${w.ticker}</span>
+      <span style="font-size:12px;color:var(--ink-faint)">加入於 ${w.addedAt||''}</span>
+      <button class="ri-del" onclick="removeWatchItem('${w.ticker}')" title="移除">✕</button>
     </div>`).join('');
 }
 
-function initReminderChecker() {
-  // 每分鐘檢查一次
-  setInterval(checkReminders, 60000);
-  checkReminders();
-}
-
-async function checkReminders() {
-  if (!('Notification' in window) || Notification.permission !== 'granted') return;
-  const now = new Date();
-  const hhmm = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-  const weekday = now.getDay(); // 0=日,1=一...6=六
-
-  for (const r of reminders) {
-    if (r.time !== hhmm) continue;
-    const todayStr = now.toDateString();
-    if (r.lastFired === todayStr) continue; // 今天已觸發
-
-    // 頻率檢查
-    if (r.freq === 'weekday' && (weekday === 0 || weekday === 6)) continue;
-    if (r.freq === 'weekly' && weekday !== 1) continue;
-
-    // 觸發提醒並分析
-    r.lastFired = todayStr;
-    localStorage.setItem(REMIND_KEY, JSON.stringify(reminders));
-
-    new Notification(`📊 台股估值提醒：${r.ticker}`, {
-      body: '正在自動執行估值分析，請查看工具頁面。',
-      icon: 'https://fav.farm/📊'
-    });
-
-    try {
-      const data = await callWorker(r.ticker, {});
-      saveHistory(data);
-      compareData = [data, ...compareData.filter(c => c.ticker !== data.ticker)].slice(0, 30);
-      localStorage.setItem(COMPARE_KEY, JSON.stringify(compareData));
-      renderCompare();
-      renderHistory();
-      const zone = classifyZone(data.current_price, data.cheap_price, data.fair_price, data.rich_price);
-      new Notification(`✅ ${data.name||r.ticker} 估值完成`, {
-        body: `目前 ${fmtPrice(data.current_price)}｜合理價 ${fmtPrice(data.fair_price)}｜${zone.label}`,
-        icon: 'https://fav.farm/📊'
-      });
-    } catch(e) {
-      new Notification(`❌ ${r.ticker} 分析失敗`, { body: e.message });
-    }
+async function testTelegramNotify() {
+  try {
+    const res = await fetch(WORKER_URL + '/test-notify', { method: 'POST' });
+    if (!res.ok) throw new Error('發送失敗');
+    alert('✅ 測試推播已送出，請檢查 Telegram');
+  } catch(e) {
+    alert('❌ 測試失敗：' + e.message);
   }
 }
 
