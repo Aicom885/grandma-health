@@ -101,6 +101,12 @@ textarea:focus{border-color:var(--accent);}
 .conf-text{flex:1;line-height:1.5;}
 .conf-label{font-weight:700;margin-right:5px;}
 
+.mops-badge{display:none;align-items:center;gap:8px;padding:7px 12px;border-radius:6px;font-size:11.5px;margin-bottom:12px;line-height:1.5;}
+.mops-badge.show{display:flex;}
+.mops-badge.verified{background:var(--ok-bg);color:var(--ok-text);border:1px solid var(--ok-border);}
+.mops-badge.unverified{background:var(--warn-bg);color:var(--warn-text);border:1px solid var(--warn-border);}
+.mops-badge .mb-icon{font-size:13px;flex-shrink:0;}
+
 /* Result card */
 .result-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;margin-bottom:24px;}
 .result-card.hidden{display:none;}
@@ -364,6 +370,7 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
       <span class="conf-icon" id="confIcon"></span>
       <span class="conf-text"><span class="conf-label" id="confLabel"></span><span id="confMsg"></span></span>
     </div>
+    <div class="mops-badge" id="mopsBadge"></div>
     <div class="current-price-row">
       <span class="cp-label">目前股價</span>
       <span class="cp-val" id="rCurrent"></span>
@@ -790,6 +797,16 @@ function renderResult(d) {
   if (conf.level==='high' && zone.cls==='zone-mad')
     confMsg += ' ⚠️ 注意：股價高於昂貴價，可能是 P/E 錨點偏保守或 Bull Case 未取得，建議手動覆蓋重新計算。';
   document.getElementById('confMsg').textContent = confMsg;
+
+  // MOPS 季報 EPS 驗證徽章
+  const mopsBadge = document.getElementById('mopsBadge');
+  if (d.eps_latest_quarter != null) {
+    mopsBadge.className = 'mops-badge show ' + (d._eps_verified ? 'verified' : 'unverified');
+    mopsBadge.innerHTML = `<span class="mb-icon">${d._eps_verified ? '🔒' : '⚠️'}</span><span>${d._eps_verify_note || (d._eps_verified ? '已比對 MOPS 官方資料' : '未經官方比對')}</span>`;
+  } else {
+    mopsBadge.className = 'mops-badge';
+    mopsBadge.innerHTML = '';
+  }
 
   document.getElementById('rCurrent').textContent = fmtPrice(d.current_price);
   const distPct = d.fair_price ? ((d.current_price-d.fair_price)/d.fair_price*100).toFixed(1) : null;
