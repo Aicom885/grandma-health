@@ -447,7 +447,8 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
       </div>
       <button class="btn btn-primary" onclick="addWatchItem()">加入追蹤清單</button>
     </div>
-    <button class="btn btn-secondary" onclick="testTelegramNotify()">📤 發送測試推播</button>
+    <button class="btn btn-secondary" id="btnTestNotify" onclick="testTelegramNotify()">📤 發送測試推播（含估值分析）</button>
+    <div class="hint" style="margin-top:8px">測試推播會對追蹤清單前 2 檔股票執行完整估值分析，結果推播到 Telegram，約需 30-60 秒。</div>
   </div>
 
   <div class="panel-card">
@@ -456,10 +457,20 @@ td.mono{font-family:'IBM Plex Mono',monospace;}
   </div>
 
   <div class="panel-card">
-    <div class="panel-title">推播時間設定</div>
-    <div class="hint">
-      推播時間由 Cloudflare Worker 的 <b>Cron Trigger</b> 控制，無法在此頁面調整。<br>
-      如需更改時間，請至 Cloudflare Dashboard → equity-proxy → Settings → Triggers → Cron Triggers 修改排程（例如 <code>0 1 * * *</code> 為台灣時間每天早上 9 點）。
+    <div class="panel-title">自動推播時間</div>
+    <div class="hint" style="line-height:2">
+      目前排程：每天台灣時間 <b>早上 9:00</b>（Cron：<code>0 1 * * *</code> UTC）<br>
+      推播由 Cloudflare Cron Trigger 在伺服器端自動執行，<b>不需要開啟瀏覽器或手機</b>。<br>
+      如需更改時間，請至：<br>
+      <a href="https://dash.cloudflare.com" target="_blank" style="color:var(--accent)">Cloudflare Dashboard</a>
+      → equity-proxy → Settings → Triggers → Cron Triggers
+    </div>
+    <div style="margin-top:12px;padding:10px 14px;background:var(--line-soft);border-radius:6px;font-size:12px;">
+      <b>常用時間對照表（台灣 UTC+8 → Cron UTC）：</b><br>
+      早上 8:30 → <code>30 0 * * 1-5</code>（僅週一到週五）<br>
+      早上 9:00 → <code>0 1 * * *</code>（每天）<br>
+      下午 1:30 → <code>30 5 * * 1-5</code>（僅週一到週五，收盤前）<br>
+      下午 3:00 → <code>0 7 * * 1-5</code>（僅週一到週五，收盤後）
     </div>
   </div>
 </div>
@@ -554,6 +565,12 @@ async function runSingle() {
   setError('');
   setSteps('idle');
   document.getElementById('resultCard').classList.add('hidden');
+
+  // 8 秒後顯示「資料驗證中」提示，讓使用者知道系統仍在運作（可能正在重試）
+  const slowHint = setTimeout(() => {
+    document.getElementById('btnRun').textContent = '資料驗證中…';
+  }, 8000);
+
   try {
     setSteps('s1'); await delay(700);
     setSteps('s2'); await delay(600);
@@ -568,6 +585,7 @@ async function runSingle() {
     setSteps('error');
     setError('分析失敗：' + e.message);
   } finally {
+    clearTimeout(slowHint);
     setRunning(false);
   }
 }
@@ -721,29 +739,64 @@ function renderWatchlist() {
 }
 
 async function testTelegramNotify() {
+  const btn = document.getElementById('btnTestNotify');
+  btn.disabled = true;
+  btn.textContent = '⏳ 分析中，請稍候（約 30-60 秒）…';
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 120000); // 2 分鐘逾時（測試最多 2 檔）
+
   try {
-    const res = await fetch(WORKER_URL + '/test-notify', { method: 'POST' });
+    const res = await fetch(WORKER_URL + '/test-notify', {
+      method: 'POST',
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
     if (!res.ok) throw new Error('發送失敗');
-    alert('✅ 測試推播已送出，請檢查 Telegram');
+    btn.textContent = '✅ 已推播，請查看 Telegram';
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '📤 發送測試推播（含估值分析）';
+    }, 5000);
   } catch(e) {
-    alert('❌ 測試失敗：' + e.message);
+    clearTimeout(timeoutId);
+    const msg = e.name === 'AbortError' ? '逾時（超過 2 分鐘）' : e.message;
+    btn.textContent = `❌ 失敗：${msg}`;
+    setTimeout(() => {
+      btn.disabled = false;
+      btn.textContent = '📤 發送測試推播（含估值分析）';
+    }, 5000);
   }
 }
 
 // ══ Worker 呼叫 ═══════════════════════════════════════
 async function callWorker(ticker, overrides) {
-  const res = await fetch(WORKER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ticker, overrides, target_year: TARGET_YEAR })
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`Worker 回傳 ${res.status}：${t}`);
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 90000); // 90 秒逾時，留足夠時間給 MOPS 查詢 + 最多兩次 OpenAI 呼叫
+
+  try {
+    const res = await fetch(WORKER_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ticker, overrides, target_year: TARGET_YEAR }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const t = await res.text();
+      throw new Error(`Worker 回傳 ${res.status}：${t}`);
+    }
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    return data;
+  } catch (e) {
+    clearTimeout(timeoutId);
+    if (e.name === 'AbortError') {
+      throw new Error('分析逾時（超過 90 秒），可能是資料來源回應較慢，請稍後再試一次');
+    }
+    throw e;
   }
-  const data = await res.json();
-  if (data.error) throw new Error(data.error);
-  return data;
 }
 
 function applyOverrides(data, overrides) {
