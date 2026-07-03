@@ -105,6 +105,24 @@ body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);padding-bottom:1
   .pft{text-align:center;font-size:8.5px;color:#9ca3af;margin-top:9px;}
   .pamt{background:#fef9c3;border:1px solid #fde68a;border-radius:4px;padding:5px 10px;font-size:11px;color:#713f12;margin-bottom:8px;font-weight:700;}
 }
+
+/* ===== 總金額欄位 ===== */
+.amt-body{background:#fff;border-radius:0 0 9px 9px;padding:12px 14px;
+  box-shadow:0 2px 10px rgba(0,0,0,.09);overflow:hidden;}
+.amt-wrap{position:relative;display:block;width:100%;max-width:100%;
+  box-sizing:border-box;overflow:hidden;}
+.amt-wrap.amt-focus .amt-input{border-color:#d97706;}
+.amt-prefix{position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  font-size:1rem;font-weight:900;color:#713f12;pointer-events:none;z-index:1;}
+.amt-suffix{position:absolute;right:12px;top:50%;transform:translateY(-50%);
+  font-size:.85rem;color:#94a3b8;pointer-events:none;z-index:1;}
+.amt-input{display:block;width:100%;max-width:100%;box-sizing:border-box;
+  border:1.5px solid #e2e8f0;border-radius:8px;
+  padding:11px 40px 11px 48px;
+  font-size:1.15rem;font-weight:700;font-family:inherit;
+  color:#713f12;outline:none;text-align:right;
+  -webkit-appearance:none;appearance:none;}
+.amt-input::placeholder{color:#cbd5e1;font-weight:400;}
 </style>
 </head>
 <body>
@@ -170,32 +188,39 @@ function buildSections(){
   amtHd.innerHTML = '<span>💰 預計總金額</span><span class="sec-sub">Total Belanja</span>';
   amtSec.appendChild(amtHd);
 
+  /* 用 CSS class 統一管理，避免 inline style 被 iOS 覆蓋 */
   var amtBody = document.createElement('div');
-  amtBody.style.cssText = 'background:#fff;border-radius:0 0 9px 9px;padding:12px 14px;'
-    +'box-shadow:0 2px 10px rgba(0,0,0,.09);display:flex;align-items:center;gap:10px;';
+  amtBody.className = 'amt-body';
 
-  var amtLabel = document.createElement('span');
-  amtLabel.style.cssText = 'font-size:1.1rem;font-weight:900;color:#713f12;white-space:nowrap;';
-  amtLabel.textContent = 'NT$';
+  var amtWrap = document.createElement('div');
+  amtWrap.className = 'amt-wrap';
+
+  var amtPrefix = document.createElement('span');
+  amtPrefix.className = 'amt-prefix';
+  amtPrefix.textContent = 'NT$';
+
+  var amtSuffix = document.createElement('span');
+  amtSuffix.className = 'amt-suffix';
+  amtSuffix.textContent = '元';
 
   var amtInput = document.createElement('input');
   amtInput.id = 'amtInput';
-  amtInput.type = 'number';
-  amtInput.min = '0';
+  amtInput.type = 'text';          /* text 避免 iOS number 的寬度 bug */
+  amtInput.inputMode = 'numeric';  /* 手機仍彈數字鍵盤 */
+  amtInput.pattern = '[0-9]*';
   amtInput.placeholder = '0';
-  amtInput.style.cssText = 'flex:1;border:1.5px solid #e2e8f0;border-radius:8px;'
-    +'padding:10px 12px;font-size:1.2rem;font-weight:700;font-family:inherit;'
-    +'color:#713f12;outline:none;text-align:right;';
-  amtInput.addEventListener('focus', function(){ amtInput.style.borderColor='#d97706'; });
-  amtInput.addEventListener('blur',  function(){ amtInput.style.borderColor='#e2e8f0'; });
+  amtInput.className = 'amt-input';
+  amtInput.addEventListener('focus', function(){ amtWrap.classList.add('amt-focus'); });
+  amtInput.addEventListener('blur',  function(){ amtWrap.classList.remove('amt-focus'); });
+  /* 只允許輸入數字 */
+  amtInput.addEventListener('input', function(){
+    this.value = this.value.replace(/[^0-9]/g,'');
+  });
 
-  var amtUnit = document.createElement('span');
-  amtUnit.style.cssText = 'font-size:.85rem;color:#94a3b8;white-space:nowrap;';
-  amtUnit.textContent = '元';
-
-  amtBody.appendChild(amtLabel);
-  amtBody.appendChild(amtInput);
-  amtBody.appendChild(amtUnit);
+  amtWrap.appendChild(amtPrefix);
+  amtWrap.appendChild(amtInput);
+  amtWrap.appendChild(amtSuffix);
+  amtBody.appendChild(amtWrap);
   amtSec.appendChild(amtBody);
   main.appendChild(amtSec);
 
@@ -307,7 +332,7 @@ function buildPrintSection(){
   var h='<div class="pp">'
     +'<div class="ptitle">🛒 購物清單 ｜ Daftar Belanja</div>'
     +'<div class="pmeta"><span>日期：'+dateStr+'</span><span>共選 '+sel.length+' 項</span></div>'
-  var amtVal=(document.getElementById('amtInput')||{}).value||'';
+  var amtVal=((document.getElementById('amtInput')||{}).value||'').replace(/[^0-9]/g,'');
   if(amtVal&&Number(amtVal)>0){
     h+='<div class="pamt">💰 預計總金額 / Total Belanja：<strong>NT$ '+Number(amtVal).toLocaleString()+' 元</strong></div>';
   };
