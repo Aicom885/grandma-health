@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中印多人即時翻譯</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F4EDE2;--surface:#FFFCF6;--text:#2D2419;--muted:#7A6B58;
+  --border:#E5D9C5;--accent:#C8603A;--accent2:#5C8A6B;--soft:#F5E2D4;
+  --font-display:'DM Serif Display',Georgia,serif;
+  --font-sans:'Nunito','SF Pro Rounded',system-ui,sans-serif;
+}
+body{font-family:var(--font-sans);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;}
+
+.page{max-width:430px;margin:0 auto;padding:0 0 40px;}
+
+/* HERO */
+.hero{background:var(--accent);padding:44px 28px 36px;position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,0.08);}
+.hero::after{content:'';position:absolute;bottom:-50px;left:-30px;width:140px;height:140px;border-radius:50%;background:rgba(255,255,255,0.06);}
+.flag-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;position:relative;z-index:1;}
+.flag{font-size:26px;}
+.arrow{color:rgba(255,255,255,0.7);font-size:18px;font-weight:700;}
+.hero-tag{background:rgba(255,255,255,0.2);color:#fff;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:4px 12px;border-radius:20px;display:inline-block;margin-bottom:14px;position:relative;z-index:1;}
+.hero-title{font-family:var(--font-display);color:#fff;font-size:36px;line-height:1.15;margin-bottom:10px;position:relative;z-index:1;}
+.hero-title span{display:block;font-size:22px;opacity:0.88;margin-top:4px;}
+.hero-sub{color:rgba(255,255,255,0.85);font-size:14px;line-height:1.6;position:relative;z-index:1;}
+
+/* PAIN */
+.pain{background:var(--surface);margin:20px 20px 0;border-radius:24px;padding:22px 22px;border:1.5px solid var(--border);display:flex;gap:14px;align-items:flex-start;}
+.pain-icon{font-size:32px;flex-shrink:0;margin-top:2px;}
+.pain-title{font-weight:800;font-size:15px;color:var(--text);margin-bottom:5px;}
+.pain-text{font-size:13px;color:var(--muted);line-height:1.6;}
+
+/* SECTION */
+.section{padding:24px 20px 0;}
+.section-label{font-size:11px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--accent);margin-bottom:14px;}
+
+/* FEATURES */
+.feature-list{display:flex;flex-direction:column;gap:10px;}
+.feature{background:var(--surface);border-radius:20px;padding:16px 18px;border:1.5px solid var(--border);display:flex;align-items:center;gap:14px;}
+.feature-icon{width:42px;height:42px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.bg-orange{background:#FDEBD8;}
+.bg-green{background:#DBF0E3;}
+.bg-blue{background:#D8EEFF;}
+.bg-purple{background:#EDE8FA;}
+.bg-pink{background:#FDDEE9;}
+.bg-yellow{background:#FDF4D0;}
+.feature-text{flex:1;}
+.feature-name{font-weight:800;font-size:14px;color:var(--text);margin-bottom:2px;}
+.feature-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+
+/* WHO */
+.who-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.who-card{background:var(--surface);border-radius:20px;padding:16px 14px;border:1.5px solid var(--border);text-align:center;}
+.who-emoji{font-size:28px;margin-bottom:8px;}
+.who-title{font-weight:800;font-size:13px;color:var(--text);margin-bottom:4px;}
+.who-sub{font-size:11px;color:var(--muted);line-height:1.5;}
+
+/* HOW */
+.steps{display:flex;flex-direction:column;gap:8px;}
+.step{display:flex;align-items:center;gap:14px;}
+.step-num{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-weight:800;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-line{display:flex;flex-direction:column;}
+.step-name{font-weight:700;font-size:14px;color:var(--text);}
+.step-desc{font-size:12px;color:var(--muted);}
+.step-connector{width:1.5px;height:12px;background:var(--border);margin-left:15px;}
+
+/* PRICE */
+.price-card{background:var(--accent);border-radius:28px;padding:28px 24px;margin:0 20px;text-align:center;position:relative;overflow:hidden;}
+.price-card::before{content:'';position:absolute;top:-30px;right:-30px;width:120px;height:120px;border-radius:50%;background:rgba(255,255,255,0.1);}
+.price-label{color:rgba(255,255,255,0.8);font-size:12px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;}
+.price-amount{font-family:var(--font-display);font-size:64px;color:#fff;line-height:1;margin-bottom:6px;}
+.price-amount span{font-family:var(--font-sans);font-size:20px;vertical-align:super;font-weight:700;}
+.price-note{color:rgba(255,255,255,0.85);font-size:13px;line-height:1.6;}
+.price-includes{display:flex;flex-direction:column;gap:4px;margin-top:16px;}
+.price-item{color:rgba(255,255,255,0.9);font-size:13px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;}
+
+/* TESTIMONIAL */
+.testimonial{background:var(--soft);border-radius:24px;padding:20px 22px;margin:0 20px;border-left:4px solid var(--accent);}
+.testimonial-text{font-family:var(--font-display);font-size:17px;color:var(--text);line-height:1.5;margin-bottom:10px;}
+.testimonial-author{font-size:12px;color:var(--muted);font-weight:700;}
+
+/* CTA */
+.cta-card{background:var(--surface);border-radius:28px;padding:28px 24px;margin:0 20px;border:2px solid var(--border);text-align:center;}
+.cta-title{font-family:var(--font-display);font-size:24px;color:var(--text);margin-bottom:8px;}
+.cta-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.line-btn{background:#06C755;color:#fff;font-weight:800;font-size:16px;padding:14px 28px;border-radius:50px;display:inline-flex;align-items:center;gap:10px;text-decoration:none;letter-spacing:0.3px;}
+.line-id{margin-top:14px;font-size:14px;color:var(--muted);}
+.line-id strong{color:var(--text);font-size:16px;}
+
+/* FOOTER */
+.footer{text-align:center;padding:24px 20px 0;font-size:11px;color:var(--muted);line-height:1.8;}
+
+/* WAVE DIVIDER */
+.wave{width:100%;overflow:hidden;line-height:0;margin-top:20px;}
+
+/* PRINT */
+@media print{
+  body{background:#fff;}
+  .page{max-width:100%;padding:0;}
+  .hero{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .price-card{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  @page{margin:0;size:A4 portrait;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="flag-row">
+      <span class="flag">🇹🇼</span>
+      <span class="arrow">⇄</span>
+      <span class="flag">🇮🇩</span>
+    </div>
+    <div class="hero-tag">即時 · 免費下載 · 手機可用</div>
+    <div class="hero-title">
+      中印多人即時翻譯
+      <span>跨越語言，照護更安心</span>
+    </div>
+    <div class="hero-sub">讓台灣家庭與印尼看護能夠順暢溝通<br>訊息即時翻譯，不再雞同鴨講</div>
+  </div>
+
+  <!-- PAIN POINT -->
+  <div class="pain">
+    <div class="pain-icon">😟</div>
+    <div>
+      <div class="pain-title">你是否有這樣的困擾？</div>
+      <div class="pain-text">長輩想交代事情，印傭聽不懂；印傭想回報狀況，家人看不懂⋯⋯ 現在這些問題都解決了！</div>
+    </div>
+  </div>
+
+  <!-- FEATURES -->
+  <div class="section">
+    <div class="section-label">✦ 主要功能</div>
+    <div class="feature-list">
+      <div class="feature">
+        <div class="feature-icon bg-orange">💬</div>
+        <div class="feature-text">
+          <div class="feature-name">即時雙向翻譯</div>
+          <div class="feature-desc">打中文，對方看到印尼文；打印尼文，對方看到中文，自動即時同步</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-green">👥</div>
+        <div class="feature-text">
+          <div class="feature-name">多人同時使用</div>
+          <div class="feature-desc">老闆、太太、姊姊、弟弟、印傭，最多 5 人同一頻道對話</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-blue">🔔</div>
+        <div class="feature-text">
+          <div class="feature-name">來訊提示音＋閃爍</div>
+          <div class="feature-desc">有新訊息時會「叮咚」提示，畫面也會閃爍，不怕沒注意到</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-purple">✓</div>
+        <div class="feature-text">
+          <div class="feature-name">已讀功能</div>
+          <div class="feature-desc">對方看過訊息後顯示「✓ 已讀」，確認訊息有被看到</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-pink">🖼</div>
+        <div class="feature-text">
+          <div class="feature-name">圖片傳送</div>
+          <div class="feature-desc">直接傳照片，藥袋、食譜、注意事項一目了然</div>
+        </div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon bg-yellow">📱</div>
+        <div class="feature-text">
+          <div class="feature-name">手機平板都能用</div>
+          <div class="feature-desc">不用下載 APP，開瀏覽器就能用，Android 與 iPhone 都支援</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHO IS IT FOR -->
+  <div class="section">
+    <div class="section-label">✦ 適合對象</div>
+    <div class="who-grid">
+      <div class="who-card">
+        <div class="who-emoji">👴👵</div>
+        <div class="who-title">需要看護的長輩家庭</div>
+        <div class="who-sub">日常照護溝通更順暢安心</div>
+      </div>
+      <div class="who-card">
+        <div class="who-emoji">🏠</div>
+        <div class="who-title">僱用印傭的家庭</div>
+        <div class="who-sub">家事交代不再比手畫腳</div>
+      </div>
+      <div class="who-card">
+        <div class="who-emoji">👨‍👩‍👧</div>
+        <div class="who-title">分隔兩地的家人</div>
+        <div class="who-sub">台北、嘉義都能即時連線</div>
+      </div>
+      <div class="who-card">
+        <div class="who-emoji">🤝</div>
+        <div class="who-title">重視印傭照護品質</div>
+        <div class="who-sub">溝通清楚，照護更到位</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <div class="section">
+    <div class="section-label">✦ 使用方式</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-line">
+          <div class="step-name">加 LINE 聯絡設定</div>
+          <div class="step-desc">告知需求，5 分鐘完成設定</div>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-line">
+          <div class="step-name">取得專屬網址與代碼</div>
+          <div class="step-desc">傳給家人和印傭，各自用手機開啟</div>
+        </div>
+      </div>
+      <div class="step-connector"></div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-line">
+          <div class="step-name">選名字，開始對話</div>
+          <div class="step-desc">輸入文字，對方即時看到翻譯！</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TESTIMONIAL -->
+  <div class="section">
+    <div class="testimonial">
+      <div class="testimonial-text">「以前每次交代印傭都要比手畫腳，現在打字就能溝通，長輩也安心多了！」</div>
+      <div class="testimonial-author">— 台北市 林太太（實際使用者）</div>
+    </div>
+  </div>
+
+  <!-- PRICE -->
+  <div class="section">
+    <div class="section-label">✦ 費用</div>
+  </div>
+  <div class="price-card">
+    <div class="price-label">一次性設定費</div>
+    <div class="price-amount"><span>NT$</span>200</div>
+    <div class="price-note">設定完成即可永久使用<br>後續翻譯費用極低，每月不超過 NT$5</div>
+    <div class="price-includes">
+      <div class="price-item">✓ 專屬房間代碼設定</div>
+      <div class="price-item">✓ 使用說明與教學</div>
+      <div class="price-item">✓ 後續問題免費諮詢</div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="section">
+    <div class="cta-card">
+      <div class="cta-title">立即開始，免費試用</div>
+      <div class="cta-sub">有任何問題歡迎加 LINE 詢問<br>可先免費試用，滿意再付款</div>
+      <a class="line-btn" href="https://line.me/ti/p/~0952358805">
+        <svg width="22" height="22" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="12" fill="white"/><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.227 3.29 9.81 8.27 12.43-.364 1.356-.977 3.643-1.122 4.208-.18.693.255.683.535.497.22-.146 3.487-2.37 4.9-3.332A20.08 20.08 0 0024 36.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#06C755"/></svg>
+        加 LINE 詢問
+      </a>
+      <div class="line-id">LINE ID：<strong>0952358805</strong></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    中印多人即時翻譯服務<br>
+    支援 繁體中文 ⇄ Bahasa Indonesia<br>
+    手機 · 平板 · 電腦 皆可使用
+  </div>
+
+</div>
+</body>
+</html>
