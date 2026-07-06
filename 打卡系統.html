@@ -104,8 +104,8 @@
   }
   .no-gps-note{font-size:22px;color:var(--muted);padding:7px 12px 10px;border-top:0.5px solid var(--border);}
 
-  .pair-dur{font-size:22px;color:var(--muted);padding:3px 12px 8px;display:flex;align-items:center;gap:5px;}
-  .dur{font-family:'Share Tech Mono',monospace;font-size:24px;color:var(--text);}
+  .pair-dur{font-size:13px;color:var(--muted);padding:5px 12px 8px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap;}
+  .dur{font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--text);font-weight:600;}
 
   .clear-btn{display:block;width:calc(100% - 32px);margin:8px 16px 28px;padding:13px;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
@@ -344,7 +344,7 @@ function renderRecords(){
           const totalMs=nxt.ts-r.ts;
           const actualMs=Math.max(0,totalMs-3600000);
           const lunchNote=totalMs>=3600000?'（已扣午休1小時）':'';
-          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted)">${lunchNote}</span></div>`;
+          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted);flex-shrink:0">${lunchNote}</span></div>`;
           i+=2;continue;
         }
       }else{
