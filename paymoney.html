@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>付款說明 — 中印多人即時翻譯</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito','PingFang TC',system-ui,sans-serif;background:#F4EDE2;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#FFFCF6;border-radius:28px;max-width:380px;width:100%;overflow:hidden;box-shadow:0 4px 24px rgba(0,0,0,0.08);}
+
+/* HEADER */
+.header{background:#C8603A;padding:28px 24px 24px;text-align:center;}
+.header-icon{font-size:36px;margin-bottom:10px;}
+.header-title{font-size:20px;font-weight:900;color:#fff;margin-bottom:4px;}
+.header-sub{font-size:13px;color:rgba(255,255,255,0.82);font-weight:600;}
+
+/* PRICE REMINDER */
+.price-row{background:#FFF3EE;padding:16px 24px;display:flex;align-items:center;justify-content:center;gap:20px;border-bottom:1.5px solid #F0E0D5;}
+.price-item{text-align:center;}
+.price-period{font-size:11px;font-weight:700;color:#C8603A;letter-spacing:0.8px;margin-bottom:3px;}
+.price-amount{font-size:22px;font-weight:900;color:#2D2419;}
+.price-unit{font-size:12px;font-weight:600;color:#7A6B58;}
+.price-arrow{font-size:20px;color:#C8603A;opacity:0.5;}
+
+/* STEPS */
+.steps{padding:22px 24px;}
+.steps-title{font-size:12px;font-weight:700;letter-spacing:1.2px;color:#C8603A;text-transform:uppercase;margin-bottom:16px;}
+.step{display:flex;gap:14px;margin-bottom:14px;align-items:flex-start;}
+.step:last-child{margin-bottom:0;}
+.step-num{width:28px;height:28px;border-radius:50%;background:#C8603A;color:#fff;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.step-content{flex:1;}
+.step-name{font-weight:800;font-size:14px;color:#2D2419;margin-bottom:2px;}
+.step-desc{font-size:12px;color:#7A6B58;line-height:1.5;}
+.step-connector{width:1.5px;height:10px;background:#E5D9C5;margin-left:13px;margin-bottom:4px;}
+
+/* BANK INFO */
+.bank-box{background:#F8F4EE;border-radius:18px;margin:0 24px;padding:20px;border:1.5px solid #E5D9C5;}
+.bank-title{font-size:11px;font-weight:700;letter-spacing:1.2px;color:#C8603A;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:6px;}
+.bank-row{display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #EDE4D8;}
+.bank-row:last-child{border-bottom:none;padding-bottom:0;}
+.bank-label{font-size:12px;color:#7A6B58;font-weight:600;}
+.bank-value{font-size:15px;font-weight:800;color:#2D2419;letter-spacing:0.5px;}
+.bank-value.account{font-size:18px;color:#C8603A;letter-spacing:1px;}
+
+/* NOTE */
+.note{margin:16px 24px 0;background:#FFF8E6;border-radius:14px;padding:14px 16px;border-left:4px solid #F5C842;display:flex;gap:10px;align-items:flex-start;}
+.note-icon{font-size:18px;flex-shrink:0;}
+.note-text{font-size:12px;color:#5C4A00;line-height:1.6;font-weight:600;}
+
+/* FOOTER */
+.footer{padding:20px 24px 24px;text-align:center;}
+.footer-text{font-size:12px;color:#7A6B58;margin-bottom:14px;line-height:1.6;}
+.line-btn{display:inline-flex;align-items:center;gap:8px;background:#06C755;color:#fff;font-weight:800;font-size:14px;padding:12px 24px;border-radius:50px;text-decoration:none;}
+.line-id{margin-top:10px;font-size:12px;color:#7A6B58;}
+.line-id strong{color:#2D2419;}
+
+@media print{
+  body{background:#fff;padding:0;}
+  .card{box-shadow:none;border:1px solid #ddd;}
+  @page{margin:10mm;size:A6 portrait;}
+}
+</style>
+</head>
+<body>
+<div class="card">
+
+  <!-- HEADER -->
+  <div class="header">
+    <div class="header-icon">💳</div>
+    <div class="header-title">付款說明</div>
+    <div class="header-sub">中印多人即時翻譯服務</div>
+  </div>
+
+  <!-- PRICE REMINDER -->
+  <div class="price-row">
+    <div class="price-item">
+      <div class="price-period">前半年</div>
+      <div class="price-amount">NT$200<span class="price-unit">/月</span></div>
+    </div>
+    <div class="price-arrow">→</div>
+    <div class="price-item">
+      <div class="price-period">半年後</div>
+      <div class="price-amount">NT$100<span class="price-unit">/月</span></div>
+    </div>
+  </div>
+
+  <!-- STEPS -->
+  <div class="steps">
+    <div class="steps-title">✦ 付款步驟</div>
+    <div class="step">
+      <div class="step-num">1</div>
+      <div class="step-content">
+        <div class="step-name">銀行轉帳</div>
+        <div class="step-desc">依下方帳號資訊轉入月費，手機銀行 APP 轉帳即可</div>
+      </div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <div class="step-content">
+        <div class="step-name">LINE 通知確認</div>
+        <div class="step-desc">轉帳完成後加 LINE 告知，附上轉帳後五碼或截圖</div>
+      </div>
+    </div>
+    <div class="step-connector"></div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <div class="step-content">
+        <div class="step-name">收到網址開始使用</div>
+        <div class="step-desc">確認收款後立即設定並傳送專屬網址給您</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BANK INFO -->
+  <div class="bank-box">
+    <div class="bank-title">🏦 銀行帳號資訊</div>
+    <div class="bank-row">
+      <div class="bank-label">銀行</div>
+      <div class="bank-value">國泰世華銀行</div>
+    </div>
+    <div class="bank-row">
+      <div class="bank-label">銀行代碼</div>
+      <div class="bank-value">013</div>
+    </div>
+    <div class="bank-row">
+      <div class="bank-label">帳號</div>
+      <div class="bank-value account">018505294510</div>
+    </div>
+    <div class="bank-row">
+      <div class="bank-label">戶名</div>
+      <div class="bank-value">呂憲政</div>
+    </div>
+  </div>
+
+  <!-- NOTE -->
+  <div class="note">
+    <div class="note-icon">💡</div>
+    <div class="note-text">轉帳時請備註您的姓名，方便核對。轉帳完成後請務必 LINE 通知，以便盡快為您開通服務。</div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="footer-text">如有任何問題歡迎加 LINE 詢問<br>通常 24 小時內回覆</div>
+    <a class="line-btn" href="https://line.me/R/ti/p/%40107hhsqy" target="_blank">
+      <svg width="18" height="18" viewBox="0 0 48 48" fill="none"><rect width="48" height="48" rx="10" fill="white"/><path d="M24 8C15.163 8 8 14.477 8 22.4c0 5.227 3.29 9.81 8.27 12.43-.364 1.356-.977 3.643-1.122 4.208-.18.693.255.683.535.497.22-.146 3.487-2.37 4.9-3.332A20.08 20.08 0 0024 36.8c8.837 0 16-6.477 16-14.4S32.837 8 24 8z" fill="#06C755"/></svg>
+      加 LINE 官方帳號
+    </a>
+    <div class="line-id">LINE 官方帳號：<strong>@107hhsqy</strong></div>
+  </div>
+
+</div>
+</body>
+</html>
