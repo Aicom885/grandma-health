@@ -174,6 +174,10 @@ tr:hover td{background:#FFFBF5;}
       <label>客戶專屬網址</label>
       <input type="text" id="fUrl" placeholder="https://xxx.web.app">
     </div>
+    <div class="form-group">
+      <label>檔案位置</label>
+      <input type="text" id="fFilePath" placeholder="例：G:\我的雲端硬碟\客戶A翻譯">
+    </div>
     <div class="form-group full">
       <label>備註</label>
       <textarea id="fNote" placeholder="其他備注事項…"></textarea>
@@ -206,6 +210,7 @@ tr:hover td{background:#FFFBF5;}
           <th>電話</th>
           <th>LINE</th>
           <th>網址</th>
+          <th>檔案位置</th>
           <th>備註</th>
           <th>操作</th>
         </tr>
@@ -294,7 +299,7 @@ function toggleForm(show=true){
 }
 
 function resetForm(){
-  ['fStartDate','fName','fPhone','fLineId','fFirebase','fUrl','fNote'].forEach(id=>document.getElementById(id).value='');
+  ['fStartDate','fName','fPhone','fLineId','fFirebase','fUrl','fFilePath','fNote'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fInterface').value='multi';
   document.getElementById('fPayment').value='monthly';
   document.getElementById('expiryPreview').textContent='請先選擇啟用日期';
@@ -318,6 +323,7 @@ function saveCustomer(){
     lineId:    document.getElementById('fLineId').value.trim(),
     firebase:  document.getElementById('fFirebase').value.trim(),
     url:       document.getElementById('fUrl').value.trim(),
+    filePath:  document.getElementById('fFilePath').value.trim(),
     note:      document.getElementById('fNote').value.trim(),
     createdAt: new Date().toISOString()
   };
@@ -339,6 +345,7 @@ function editCustomer(i){
   document.getElementById('fLineId').value=o.lineId||'';
   document.getElementById('fFirebase').value=o.firebase||'';
   document.getElementById('fUrl').value=o.url||'';
+  document.getElementById('fFilePath').value=o.filePath||'';
   document.getElementById('fNote').value=o.note||'';
   document.getElementById('formTitle').textContent='編輯客戶';
   calcExpiry();
@@ -385,6 +392,7 @@ function renderTable(search=''){
       <td style="white-space:nowrap;">${c.phone||'—'}</td>
       <td style="white-space:nowrap;">${c.lineId||'—'}</td>
       <td>${urlCell}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:150px;white-space:normal;word-break:break-all;">${c.filePath||'—'}</td>
       <td style="font-size:12px;color:var(--muted);max-width:120px;">${c.note||'—'}</td>
       <td>
         <div class="action-btns">
@@ -414,7 +422,7 @@ function updateStats(){
 // ── CSV 匯出 ──
 function exportCSV(){
   if(!customers.length){ alert('沒有資料可以匯出！'); return; }
-  const headers=['#','啟用日期','客戶名稱','使用介面','繳費方式','到期日期','狀態','月費(NT$)','聯絡電話','LINE ID','Firebase專案','網址','備註'];
+  const headers=['#','啟用日期','客戶名稱','使用介面','繳費方式','到期日期','狀態','月費(NT$)','聯絡電話','LINE ID','Firebase專案','網址','檔案位置','備註'];
   const payMap={monthly:'月繳',half:'半年繳',yearly:'年繳'};
   const ifMap={multi:'多人版',single:'單人版'};
   const rows=customers.map((c,i)=>{
