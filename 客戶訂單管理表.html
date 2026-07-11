@@ -36,9 +36,9 @@ body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px;}
 .form-title{font-size:16px;font-weight:800;margin-bottom:16px;color:var(--accent);display:flex;align-items:center;gap:8px;}
 .form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
 .form-group{display:flex;flex-direction:column;gap:5px;}
-.form-group.full{grid-column:1/-1;}
+.form-group.full{grid-column:1/-1;min-width:0;}
 label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;}
-input,select,textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fafafa;color:var(--text);}
+input,select,textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fafafa;color:var(--text);min-width:0;width:100%;}
 input:focus,select:focus,textarea:focus{border-color:var(--accent);}
 textarea{resize:vertical;min-height:60px;}
 .expiry-preview{background:#FFF3EE;border:1.5px solid #F5C8A0;border-radius:10px;padding:9px 12px;font-size:14px;font-weight:700;color:var(--accent);}
@@ -172,11 +172,11 @@ tr:hover td{background:#FFFBF5;}
     </div>
     <div class="form-group full">
       <label>客戶專屬網址</label>
-      <input type="text" id="fUrl" placeholder="https://xxx.web.app">
+      <input type="text" id="fUrl" placeholder="https://xxx.web.app" style="min-width:0;width:100%;font-size:14px;letter-spacing:0.2px;" size="35">
     </div>
     <div class="form-group full">
       <label>檔案位置</label>
-      <input type="text" id="fFilePath" placeholder="例：G:\我的雲端硬碟\客戶A翻譯">
+      <input type="text" id="fFilePath" placeholder="例：G:\我的雲端硬碟\客戶A翻譯" style="min-width:0;width:100%;font-size:14px;letter-spacing:0.2px;" size="35">
     </div>
     <div class="form-group full">
       <label>備註</label>
