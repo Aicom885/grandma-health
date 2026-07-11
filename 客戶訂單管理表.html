@@ -54,10 +54,10 @@ textarea{resize:vertical;min-height:60px;}
 .search-input:focus{border-color:var(--accent);}
 
 .table-wrap{overflow-x:auto;}
-table{width:100%;border-collapse:collapse;font-size:13px;}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px;}
 thead{background:#FDF6EC;}
-th{padding:11px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;white-space:nowrap;border-bottom:1.5px solid var(--border);}
-td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+th{padding:11px 16px;text-align:left;font-size:12px;font-weight:700;color:var(--muted);letter-spacing:0.5px;white-space:nowrap;border-bottom:1.5px solid var(--border);}
+td{padding:12px 16px;border-bottom:1px solid var(--border);vertical-align:middle;white-space:nowrap;}
 tr:last-child td{border-bottom:none;}
 tr:hover td{background:#FFFBF5;}
 
@@ -129,7 +129,7 @@ tr:hover td{background:#FFFBF5;}
   <div class="form-grid">
     <div class="form-group">
       <label>啟用日期 *</label>
-      <input type="date" id="fStartDate" oninput="calcExpiry()">
+      <input type="date" id="fStartDate" oninput="calcExpiry()" onchange="calcExpiry()">
     </div>
     <div class="form-group">
       <label>客戶名稱 *</label>
@@ -155,8 +155,8 @@ tr:hover td{background:#FFFBF5;}
       <div class="expiry-preview" id="expiryPreview">請先選擇啟用日期</div>
     </div>
     <div class="form-group">
-      <label>月費金額（NT$）</label>
-      <input type="number" id="fAmount" value="200" placeholder="200">
+      <label>目前月費（自動計算）</label>
+      <div class="expiry-preview" id="amountPreview" style="background:#EDF7ED;border-color:#9FD4A3;color:#15803d;">請先選擇啟用日期</div>
     </div>
     <div class="form-group">
       <label>聯絡電話</label>
@@ -241,12 +241,32 @@ function calcExpiry(){
   const start = document.getElementById('fStartDate').value;
   const pay   = document.getElementById('fPayment').value;
   const prev  = document.getElementById('expiryPreview');
-  if(!start){ prev.textContent='請先選擇啟用日期'; return; }
-  const days  = pay==='monthly'?30:pay==='half'?180:360;
-  const d     = new Date(start);
+  const amtPrev = document.getElementById('amountPreview');
+  if(!start){
+    prev.textContent='請先選擇啟用日期';
+    amtPrev.textContent='請先選擇啟用日期';
+    return;
+  }
+  const days = pay==='monthly'?30:pay==='half'?180:360;
+  const d    = new Date(start);
   d.setDate(d.getDate()+days);
   prev.textContent = d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}) + '（'+days+'天後）';
+
+  // 計算目前費率
+  const rate = getCurrentRate(start);
+  amtPrev.textContent = rate===200 ? 'NT$200／月（優惠期前半年）' : 'NT$100／月（一般費率）';
+  amtPrev.style.color = rate===200 ? '#92400e' : '#15803d';
+  amtPrev.style.background = rate===200 ? '#FFF3EE' : '#EDF7ED';
+  amtPrev.style.borderColor = rate===200 ? '#F5C8A0' : '#9FD4A3';
+
   return d.toISOString().split('T')[0];
+}
+
+function getCurrentRate(startDate){
+  const start = new Date(startDate);
+  const today = new Date();
+  const daysSince = Math.floor((today - start) / (1000*60*60*24));
+  return daysSince < 180 ? 200 : 100;
 }
 
 function getExpiryDate(startDate, payment){
@@ -293,7 +313,7 @@ function saveCustomer(){
     interface: document.getElementById('fInterface').value,
     payment:   payment,
     expiryDate:getExpiryDate(start,payment),
-    amount:    document.getElementById('fAmount').value||'200',
+    amount:    getCurrentRate(start),
     phone:     document.getElementById('fPhone').value.trim(),
     lineId:    document.getElementById('fLineId').value.trim(),
     firebase:  document.getElementById('fFirebase').value.trim(),
@@ -312,7 +332,7 @@ function editCustomer(i){
   document.getElementById('fName').value=o.name;
   document.getElementById('fInterface').value=o.interface;
   document.getElementById('fPayment').value=o.payment;
-  document.getElementById('fAmount').value=o.amount;
+  // 費率自動計算，不需手動填入
   document.getElementById('fPhone').value=o.phone||'';
   document.getElementById('fLineId').value=o.lineId||'';
   document.getElementById('fFirebase').value=o.firebase||'';
@@ -337,6 +357,8 @@ function renderTable(search=''){
   tbody.innerHTML = list.map((c,i)=>{
     const realIndex = customers.indexOf(c);
     const st = getStatus(c.expiryDate);
+    // 即時更新費率（可能啟用超過180天後費率改變）
+    c.amount = getCurrentRate(c.startDate);
     const ifBadge = c.interface==='multi'
       ?'<span class="badge badge-multi">多人版</span>'
       :'<span class="badge badge-single">單人版</span>';
@@ -353,8 +375,11 @@ function renderTable(search=''){
       <td>${ifBadge}</td>
       <td>${payBadge}</td>
       <td style="white-space:nowrap;">${c.expiryDate}</td>
-      <td><span class="status-badge ${st.cls}">${st.label}</span></td>
-      <td>NT$${c.amount}/月</td>
+      <td style="white-space:nowrap;"><span class="status-badge ${st.cls}" style="white-space:nowrap;">${st.label}</span></td>
+      <td>
+        <span style="font-weight:700;white-space:nowrap;color:${c.amount==200?'#92400e':'#15803d'}">NT$${c.amount}/月</span>
+        <div style="font-size:10px;color:#aaa;white-space:nowrap;">${c.amount==200?'優惠期':'一般費率'}</div>
+      </td>
       <td style="white-space:nowrap;">${c.phone||'—'}</td>
       <td style="white-space:nowrap;">${c.lineId||'—'}</td>
       <td>${urlCell}</td>
@@ -409,6 +434,7 @@ renderTable(); updateStats();
 
 // 設定今天日期為預設
 document.getElementById('fStartDate').valueAsDate=new Date();
+calcExpiry();
 </script>
 </body>
 </html>
