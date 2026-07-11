@@ -297,8 +297,8 @@ function resetForm(){
   ['fStartDate','fName','fPhone','fLineId','fFirebase','fUrl','fNote'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('fInterface').value='multi';
   document.getElementById('fPayment').value='monthly';
-  document.getElementById('fAmount').value='200';
   document.getElementById('expiryPreview').textContent='請先選擇啟用日期';
+  document.getElementById('amountPreview').textContent='請先選擇啟用日期';
   document.getElementById('formTitle').textContent='新增客戶';
 }
 
@@ -323,7 +323,9 @@ function saveCustomer(){
   };
   if(editIndex>=0){ customers[editIndex]=obj; editIndex=-1; }
   else { customers.push(obj); }
-  save(); toggleForm(false); renderTable(); updateStats();
+  save();
+  toggleForm(false);
+  setTimeout(()=>{ renderTable(); updateStats(); }, 50);
 }
 
 function editCustomer(i){
