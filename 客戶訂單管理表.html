@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>客戶訂單管理表 — 中印多人即時翻譯</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,"PingFang TC","Microsoft JhengHei",sans-serif;}
+:root{
+  --bg:#F4EDE2;--surface:#FFFCF6;--accent:#C8603A;--accent2:#5C8A6B;
+  --text:#2D2419;--muted:#7A6B58;--border:#E5D9C5;--danger:#e53935;
+  --warn:#f59e0b;--ok:#16a34a;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh;padding:20px;}
+
+/* HEADER */
+.page-header{background:var(--accent);border-radius:18px;padding:22px 24px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;}
+.page-title{color:#fff;font-size:20px;font-weight:800;}
+.page-sub{color:rgba(255,255,255,0.8);font-size:12px;margin-top:3px;}
+.header-btns{display:flex;gap:8px;}
+.btn{padding:8px 16px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;}
+.btn-white{background:#fff;color:var(--accent);}
+.btn-green{background:#16a34a;color:#fff;}
+.btn-white:hover{background:#f0f0f0;}
+.btn-green:hover{background:#15803d;}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border-radius:14px;padding:16px;border:1.5px solid var(--border);text-align:center;}
+.stat-num{font-size:28px;font-weight:900;color:var(--accent);}
+.stat-label{font-size:11px;color:var(--muted);font-weight:600;margin-top:4px;}
+
+/* FORM */
+.form-card{background:var(--surface);border-radius:18px;padding:22px;border:1.5px solid var(--border);margin-bottom:20px;display:none;}
+.form-card.show{display:block;}
+.form-title{font-size:16px;font-weight:800;margin-bottom:16px;color:var(--accent);display:flex;align-items:center;gap:8px;}
+.form-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;}
+.form-group{display:flex;flex-direction:column;gap:5px;}
+.form-group.full{grid-column:1/-1;}
+label{font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;}
+input,select,textarea{padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;font-family:inherit;outline:none;background:#fafafa;color:var(--text);}
+input:focus,select:focus,textarea:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:60px;}
+.expiry-preview{background:#FFF3EE;border:1.5px solid #F5C8A0;border-radius:10px;padding:9px 12px;font-size:14px;font-weight:700;color:var(--accent);}
+.form-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+.btn-save{background:var(--accent);color:#fff;padding:10px 24px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+.btn-cancel{background:#f0f0f0;color:var(--muted);padding:10px 20px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+
+/* TABLE */
+.table-card{background:var(--surface);border-radius:18px;border:1.5px solid var(--border);overflow:hidden;}
+.table-toolbar{padding:16px 20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1.5px solid var(--border);flex-wrap:wrap;gap:10px;}
+.table-toolbar-title{font-size:15px;font-weight:800;}
+.search-input{padding:8px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;min-width:180px;}
+.search-input:focus{border-color:var(--accent);}
+
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead{background:#FDF6EC;}
+th{padding:11px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);letter-spacing:0.5px;white-space:nowrap;border-bottom:1.5px solid var(--border);}
+td{padding:12px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#FFFBF5;}
+
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;}
+.badge-multi{background:#DBF0E3;color:#15803d;}
+.badge-single{background:#D8EEFF;color:#1d4ed8;}
+.badge-monthly{background:#FDE8D0;color:#92400e;}
+.badge-half{background:#EDE8FA;color:#6d28d9;}
+.badge-yearly{background:#FDDEE9;color:#9f1239;}
+
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;}
+.status-ok{background:#dcfce7;color:#15803d;}
+.status-warn{background:#fef9c3;color:#854d0e;}
+.status-expired{background:#fee2e2;color:#991b1b;}
+
+.action-btns{display:flex;gap:6px;}
+.btn-edit{background:#EDE8FA;color:#6d28d9;border:none;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-del{background:#fee2e2;color:#991b1b;border:none;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;}
+.btn-edit:hover{background:#ddd6fe;}
+.btn-del:hover{background:#fecaca;}
+
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-text{font-size:14px;}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;align-items:center;justify-content:center;z-index:100;padding:20px;}
+.modal-overlay.show{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:24px;max-width:320px;width:100%;text-align:center;}
+.modal h3{font-size:17px;font-weight:800;margin-bottom:8px;}
+.modal p{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns button{flex:1;padding:11px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;}
+.modal-cancel{background:#f0f0f0;color:var(--muted);}
+.modal-confirm{background:var(--danger);color:#fff;}
+
+@media(max-width:600px){
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .form-grid{grid-template-columns:1fr;}
+  .page-header{flex-direction:column;align-items:flex-start;}
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="page-header">
+  <div>
+    <div class="page-title">📋 客戶訂單管理表</div>
+    <div class="page-sub">中印多人即時翻譯服務 — 呂憲政</div>
+  </div>
+  <div class="header-btns">
+    <button class="btn btn-white" onclick="exportCSV()">⬇ 匯出 CSV</button>
+    <button class="btn btn-green" onclick="toggleForm()">＋ 新增客戶</button>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-card"><div class="stat-num" id="statTotal">0</div><div class="stat-label">總客戶數</div></div>
+  <div class="stat-card"><div class="stat-num" id="statActive" style="color:var(--ok)">0</div><div class="stat-label">使用中</div></div>
+  <div class="stat-card"><div class="stat-num" id="statWarn" style="color:var(--warn)">0</div><div class="stat-label">即將到期（14天內）</div></div>
+  <div class="stat-card"><div class="stat-num" id="statExpired" style="color:var(--danger)">0</div><div class="stat-label">已到期</div></div>
+</div>
+
+<!-- FORM -->
+<div class="form-card" id="formCard">
+  <div class="form-title">✦ <span id="formTitle">新增客戶</span></div>
+  <div class="form-grid">
+    <div class="form-group">
+      <label>啟用日期 *</label>
+      <input type="date" id="fStartDate" oninput="calcExpiry()">
+    </div>
+    <div class="form-group">
+      <label>客戶名稱 *</label>
+      <input type="text" id="fName" placeholder="例：林太太">
+    </div>
+    <div class="form-group">
+      <label>使用介面 *</label>
+      <select id="fInterface">
+        <option value="multi">多人版</option>
+        <option value="single">單人版</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>繳費方式 *</label>
+      <select id="fPayment" oninput="calcExpiry()">
+        <option value="monthly">月繳（30天）</option>
+        <option value="half">半年繳（180天）</option>
+        <option value="yearly">年繳（360天）</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>自動推算到期日</label>
+      <div class="expiry-preview" id="expiryPreview">請先選擇啟用日期</div>
+    </div>
+    <div class="form-group">
+      <label>月費金額（NT$）</label>
+      <input type="number" id="fAmount" value="200" placeholder="200">
+    </div>
+    <div class="form-group">
+      <label>聯絡電話</label>
+      <input type="tel" id="fPhone" placeholder="09xx-xxx-xxx">
+    </div>
+    <div class="form-group">
+      <label>LINE ID</label>
+      <input type="text" id="fLineId" placeholder="LINE ID 或官方帳號">
+    </div>
+    <div class="form-group">
+      <label>Firebase 專案 ID</label>
+      <input type="text" id="fFirebase" placeholder="例：linmrs-translate">
+    </div>
+    <div class="form-group">
+      <label>客戶專屬網址</label>
+      <input type="text" id="fUrl" placeholder="https://xxx.web.app">
+    </div>
+    <div class="form-group full">
+      <label>備註</label>
+      <textarea id="fNote" placeholder="其他備注事項…"></textarea>
+    </div>
+  </div>
+  <div class="form-actions">
+    <button class="btn-save" onclick="saveCustomer()">💾 儲存</button>
+    <button class="btn-cancel" onclick="toggleForm(false)">取消</button>
+  </div>
+</div>
+
+<!-- TABLE -->
+<div class="table-card">
+  <div class="table-toolbar">
+    <div class="table-toolbar-title">客戶列表</div>
+    <input class="search-input" type="text" placeholder="🔍 搜尋客戶名稱…" oninput="renderTable(this.value)">
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>啟用日期</th>
+          <th>客戶名稱</th>
+          <th>介面</th>
+          <th>繳費</th>
+          <th>到期日</th>
+          <th>狀態</th>
+          <th>月費</th>
+          <th>電話</th>
+          <th>LINE</th>
+          <th>網址</th>
+          <th>備註</th>
+          <th>操作</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">還沒有客戶資料<br>按右上角「＋ 新增客戶」開始</div>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal-overlay" id="delModal">
+  <div class="modal">
+    <h3>確定刪除？</h3>
+    <p>刪除後無法復原，<br>確定要刪除這筆客戶資料嗎？</p>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModal()">取消</button>
+      <button class="modal-confirm" onclick="confirmDelete()">確定刪除</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let customers = JSON.parse(localStorage.getItem('customers') || '[]');
+let editIndex = -1;
+let deleteIndex = -1;
+
+// ── 日期計算 ──
+function calcExpiry(){
+  const start = document.getElementById('fStartDate').value;
+  const pay   = document.getElementById('fPayment').value;
+  const prev  = document.getElementById('expiryPreview');
+  if(!start){ prev.textContent='請先選擇啟用日期'; return; }
+  const days  = pay==='monthly'?30:pay==='half'?180:360;
+  const d     = new Date(start);
+  d.setDate(d.getDate()+days);
+  prev.textContent = d.toLocaleDateString('zh-TW',{year:'numeric',month:'2-digit',day:'2-digit'}) + '（'+days+'天後）';
+  return d.toISOString().split('T')[0];
+}
+
+function getExpiryDate(startDate, payment){
+  const days = payment==='monthly'?30:payment==='half'?180:360;
+  const d    = new Date(startDate);
+  d.setDate(d.getDate()+days);
+  return d.toISOString().split('T')[0];
+}
+
+function getStatus(expiryDate){
+  const today  = new Date(); today.setHours(0,0,0,0);
+  const expiry = new Date(expiryDate);
+  const diff   = Math.ceil((expiry-today)/(1000*60*60*24));
+  if(diff<0)  return {label:'已到期',   cls:'status-expired', days:diff};
+  if(diff<=14)return {label:`剩 ${diff} 天`,cls:'status-warn',    days:diff};
+  return           {label:`剩 ${diff} 天`,cls:'status-ok',      days:diff};
+}
+
+// ── 表單 ──
+function toggleForm(show=true){
+  const f=document.getElementById('formCard');
+  if(!show){ f.classList.remove('show'); resetForm(); editIndex=-1; return; }
+  f.classList.toggle('show');
+  if(!f.classList.contains('show')){ resetForm(); editIndex=-1; }
+}
+
+function resetForm(){
+  ['fStartDate','fName','fPhone','fLineId','fFirebase','fUrl','fNote'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('fInterface').value='multi';
+  document.getElementById('fPayment').value='monthly';
+  document.getElementById('fAmount').value='200';
+  document.getElementById('expiryPreview').textContent='請先選擇啟用日期';
+  document.getElementById('formTitle').textContent='新增客戶';
+}
+
+function saveCustomer(){
+  const start = document.getElementById('fStartDate').value;
+  const name  = document.getElementById('fName').value.trim();
+  if(!start||!name){ alert('請填寫啟用日期和客戶名稱！'); return; }
+  const payment = document.getElementById('fPayment').value;
+  const obj = {
+    startDate: start,
+    name:      name,
+    interface: document.getElementById('fInterface').value,
+    payment:   payment,
+    expiryDate:getExpiryDate(start,payment),
+    amount:    document.getElementById('fAmount').value||'200',
+    phone:     document.getElementById('fPhone').value.trim(),
+    lineId:    document.getElementById('fLineId').value.trim(),
+    firebase:  document.getElementById('fFirebase').value.trim(),
+    url:       document.getElementById('fUrl').value.trim(),
+    note:      document.getElementById('fNote').value.trim(),
+    createdAt: new Date().toISOString()
+  };
+  if(editIndex>=0){ customers[editIndex]=obj; editIndex=-1; }
+  else { customers.push(obj); }
+  save(); toggleForm(false); renderTable(); updateStats();
+}
+
+function editCustomer(i){
+  const o=customers[i]; editIndex=i;
+  document.getElementById('fStartDate').value=o.startDate;
+  document.getElementById('fName').value=o.name;
+  document.getElementById('fInterface').value=o.interface;
+  document.getElementById('fPayment').value=o.payment;
+  document.getElementById('fAmount').value=o.amount;
+  document.getElementById('fPhone').value=o.phone||'';
+  document.getElementById('fLineId').value=o.lineId||'';
+  document.getElementById('fFirebase').value=o.firebase||'';
+  document.getElementById('fUrl').value=o.url||'';
+  document.getElementById('fNote').value=o.note||'';
+  document.getElementById('formTitle').textContent='編輯客戶';
+  calcExpiry();
+  document.getElementById('formCard').classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteCustomer(i){ deleteIndex=i; document.getElementById('delModal').classList.add('show'); }
+function closeModal(){ document.getElementById('delModal').classList.remove('show'); deleteIndex=-1; }
+function confirmDelete(){ if(deleteIndex>=0){ customers.splice(deleteIndex,1); save(); renderTable(); updateStats(); } closeModal(); }
+
+// ── 渲染 ──
+function renderTable(search=''){
+  const tbody = document.getElementById('tableBody');
+  const empty = document.getElementById('emptyState');
+  const list  = search ? customers.filter(c=>c.name.includes(search)||c.phone?.includes(search)||c.lineId?.includes(search)) : customers;
+  empty.style.display = list.length?'none':'block';
+  tbody.innerHTML = list.map((c,i)=>{
+    const realIndex = customers.indexOf(c);
+    const st = getStatus(c.expiryDate);
+    const ifBadge = c.interface==='multi'
+      ?'<span class="badge badge-multi">多人版</span>'
+      :'<span class="badge badge-single">單人版</span>';
+    const payBadge = c.payment==='monthly'
+      ?'<span class="badge badge-monthly">月繳</span>'
+      :c.payment==='half'
+      ?'<span class="badge badge-half">半年繳</span>'
+      :'<span class="badge badge-yearly">年繳</span>';
+    const urlCell = c.url?`<a href="${c.url}" target="_blank" style="color:var(--accent);font-size:11px;word-break:break-all;">開啟</a>`:'—';
+    return `<tr>
+      <td style="color:var(--muted);font-size:12px;">${realIndex+1}</td>
+      <td style="white-space:nowrap;">${c.startDate}</td>
+      <td style="font-weight:700;">${c.name}</td>
+      <td>${ifBadge}</td>
+      <td>${payBadge}</td>
+      <td style="white-space:nowrap;">${c.expiryDate}</td>
+      <td><span class="status-badge ${st.cls}">${st.label}</span></td>
+      <td>NT$${c.amount}/月</td>
+      <td style="white-space:nowrap;">${c.phone||'—'}</td>
+      <td style="white-space:nowrap;">${c.lineId||'—'}</td>
+      <td>${urlCell}</td>
+      <td style="font-size:12px;color:var(--muted);max-width:120px;">${c.note||'—'}</td>
+      <td>
+        <div class="action-btns">
+          <button class="btn-edit" onclick="editCustomer(${realIndex})">編輯</button>
+          <button class="btn-del"  onclick="deleteCustomer(${realIndex})">刪除</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function updateStats(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  let active=0,warn=0,expired=0;
+  customers.forEach(c=>{
+    const st=getStatus(c.expiryDate);
+    if(st.days<0) expired++;
+    else if(st.days<=14) warn++;
+    else active++;
+  });
+  document.getElementById('statTotal').textContent=customers.length;
+  document.getElementById('statActive').textContent=active;
+  document.getElementById('statWarn').textContent=warn;
+  document.getElementById('statExpired').textContent=expired;
+}
+
+// ── CSV 匯出 ──
+function exportCSV(){
+  if(!customers.length){ alert('沒有資料可以匯出！'); return; }
+  const headers=['#','啟用日期','客戶名稱','使用介面','繳費方式','到期日期','狀態','月費(NT$)','聯絡電話','LINE ID','Firebase專案','網址','備註'];
+  const payMap={monthly:'月繳',half:'半年繳',yearly:'年繳'};
+  const ifMap={multi:'多人版',single:'單人版'};
+  const rows=customers.map((c,i)=>{
+    const st=getStatus(c.expiryDate);
+    return [i+1,c.startDate,c.name,ifMap[c.interface]||c.interface,payMap[c.payment]||c.payment,c.expiryDate,st.label,c.amount,c.phone||'',c.lineId||'',c.firebase||'',c.url||'',c.note||''];
+  });
+  const csv='\uFEFF'+[headers,...rows].map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url; a.download='客戶訂單管理表_'+new Date().toISOString().split('T')[0]+'.csv';
+  a.click(); URL.revokeObjectURL(url);
+}
+
+function save(){ localStorage.setItem('customers',JSON.stringify(customers)); }
+
+// 初始化
+renderTable(); updateStats();
+
+// 設定今天日期為預設
+document.getElementById('fStartDate').valueAsDate=new Date();
+</script>
+</body>
+</html>
