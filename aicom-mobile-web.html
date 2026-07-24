@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#150305">
+  <meta name="description" content="AICOM 手機服務入口：中印翻譯、健康紀錄、健康儀表板、語音播放與外傭工作事項。">
+  <title>AICOM｜手機服務入口</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #100204;
+      --panel: rgba(42, 10, 14, 0.82);
+      --panel-strong: rgba(58, 10, 16, 0.96);
+      --red: #ff243b;
+      --red-2: #bd0e23;
+      --cream: #fff7f2;
+      --muted: #d8bdba;
+      --line: rgba(255, 107, 123, 0.22);
+      --shadow: 0 18px 50px rgba(0, 0, 0, 0.34);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      min-height: 100svh;
+      font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+      color: var(--cream);
+      background:
+        radial-gradient(circle at 88% 4%, rgba(255, 36, 59, 0.24), transparent 29rem),
+        radial-gradient(circle at -12% 45%, rgba(150, 0, 22, 0.27), transparent 26rem),
+        linear-gradient(180deg, #1b0306 0%, var(--bg) 54%, #080102 100%);
+    }
+
+    a { color: inherit; }
+
+    .shell {
+      width: min(100%, 520px);
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 18px max(32px, env(safe-area-inset-bottom));
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      padding: 24px 22px 26px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background: linear-gradient(145deg, rgba(91, 9, 19, 0.9), rgba(27, 3, 6, 0.95));
+      box-shadow: var(--shadow);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: -66px;
+      bottom: -98px;
+      width: 220px;
+      height: 220px;
+      border: 46px solid rgba(255, 36, 59, 0.1);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+
+    .brand-link {
+      position: relative;
+      z-index: 1;
+      display: block;
+      width: min(100%, 360px);
+      margin-bottom: 28px;
+      text-decoration: none;
+    }
+
+    .logo {
+      display: block;
+      width: 100%;
+      height: auto;
+      filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.34));
+    }
+
+    .eyebrow {
+      position: relative;
+      z-index: 1;
+      margin: 0 0 9px;
+      color: #ff9aa6;
+      font-size: 0.78rem;
+      font-weight: 800;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      max-width: 11em;
+      font-size: clamp(2rem, 9vw, 3.2rem);
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .lead {
+      position: relative;
+      z-index: 1;
+      margin: 16px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.75;
+    }
+
+    .section {
+      margin-top: 28px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 4px 13px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.1rem;
+      letter-spacing: 0.01em;
+    }
+
+    .section-note {
+      margin: 0;
+      color: #b99592;
+      font-size: 0.78rem;
+    }
+
+    .grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .service {
+      display: grid;
+      grid-template-columns: 52px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 13px;
+      min-height: 82px;
+      padding: 14px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--panel-strong), var(--panel));
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 160ms ease, border-color 160ms ease, background 160ms ease;
+    }
+
+    .service:active { transform: scale(0.985); }
+
+    .service:focus-visible {
+      outline: 3px solid #fff;
+      outline-offset: 3px;
+    }
+
+    .service:hover {
+      border-color: rgba(255, 84, 102, 0.62);
+      background: linear-gradient(135deg, rgba(89, 11, 21, 0.98), rgba(48, 8, 13, 0.9));
+    }
+
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 18px;
+      color: #fff;
+      background: linear-gradient(145deg, var(--red), var(--red-2));
+      box-shadow: 0 10px 22px rgba(189, 14, 35, 0.3);
+      font-size: 1.5rem;
+      line-height: 1;
+    }
+
+    .service-title {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .service-desc {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.45;
+    }
+
+    .arrow {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 50%;
+      color: #ff9aa6;
+      font-size: 1.2rem;
+    }
+
+    .notice {
+      margin-top: 20px;
+      padding: 14px 16px;
+      border: 1px dashed rgba(255, 154, 166, 0.32);
+      border-radius: 18px;
+      color: #cfaeaa;
+      background: rgba(35, 7, 10, 0.62);
+      font-size: 0.78rem;
+      line-height: 1.6;
+    }
+
+    footer {
+      padding: 28px 8px 2px;
+      text-align: center;
+      color: #ad8885;
+      font-size: 0.76rem;
+      line-height: 1.7;
+    }
+
+    footer a {
+      text-underline-offset: 3px;
+    }
+
+    @media (min-width: 460px) {
+      .shell { padding-inline: 22px; }
+      .hero { padding: 30px 28px 32px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      .service { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero" aria-labelledby="main-title">
+      <a class="brand-link" href="https://aicom.com.tw" target="_blank" rel="noopener" aria-label="前往 AICOM 官方網站">
+        <img class="logo" src="assets/aicom-logo.png" alt="AICOM — A Happy Connection Begins">
+      </a>
+      <p class="eyebrow">AICOM CARE HUB</p>
+      <h1 id="main-title">照護與溝通，從一個入口開始</h1>
+      <p class="lead">整合中印翻譯、健康紀錄與日常照護工具，手機點一下就能快速使用。</p>
+    </section>
+
+    <section class="section" aria-labelledby="translation-title">
+      <div class="section-head">
+        <h2 id="translation-title">中印翻譯</h2>
+        <p class="section-note">中文 ⇄ 印尼文</p>
+      </div>
+      <div class="grid">
+        <a class="service" href="https://aicom-670b2.web.app/index.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">譯</span>
+          <span>
+            <span class="service-title">中印翻譯｜近端</span>
+            <span class="service-desc">日常面對面溝通，快速翻譯使用</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+
+        <a class="service" href="https://aicom-670b2.web.app/multi/index.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">遠</span>
+          <span>
+            <span class="service-title">中印翻譯｜遠端</span>
+            <span class="service-desc">不同地點也能進行雙向翻譯</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="care-title">
+      <div class="section-head">
+        <h2 id="care-title">健康與照護</h2>
+        <p class="section-note">每日紀錄・集中管理</p>
+      </div>
+      <div class="grid">
+        <a class="service" href="https://aicom885.github.io/grandma-health/Health%20No%20Records.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">記</span>
+          <span>
+            <span class="service-title">健康紀錄日誌</span>
+            <span class="service-desc">記錄每日健康狀況與重要事項</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+
+        <a class="service" href="https://aicom885.github.io/grandma-health/Health%20Dashboard.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">圖</span>
+          <span>
+            <span class="service-title">健康儀表板</span>
+            <span class="service-desc">集中查看健康趨勢與紀錄摘要</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+
+        <a class="service" href="https://aicom885.github.io/grandma-health/voice.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">聲</span>
+          <span>
+            <span class="service-title">語音播放</span>
+            <span class="service-desc">開啟常用照護語音，方便溝通</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+
+        <a class="service" href="https://aicom885.github.io/grandma-health/CDS.html" target="_blank" rel="noopener">
+          <span class="icon" aria-hidden="true">事</span>
+          <span>
+            <span class="service-title">外傭工作事項</span>
+            <span class="service-desc">查看每日照護工作與注意事項</span>
+          </span>
+          <span class="arrow" aria-hidden="true">›</span>
+        </a>
+      </div>
+    </section>
+
+    <aside class="notice">
+      使用前請確認網路連線。點選各服務後會另開新頁，原本的手機入口會保留。
+    </aside>
+
+    <footer>
+      <div>A Happy Connection Begins</div>
+      <a href="https://aicom.com.tw" target="_blank" rel="noopener">aicom.com.tw</a>
+    </footer>
+  </main>
+</body>
+</html>
