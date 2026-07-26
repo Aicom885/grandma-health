@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LINE 與 AICOM：照護溝通怎麼分工</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700;900&family=Noto+Sans+TC:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --bg: #EEF2EA;
+    --bg-deep: #E4EBDF;
+    --card: #FFFFFF;
+    --ink: #1F2E28;
+    --ink-soft: #56675C;
+    --ink-faint: #8A968C;
+    --aicom: #C97A2C;
+    --aicom-deep: #A5621F;
+    --aicom-soft: #F6E6CE;
+    --line-green: #06C755;
+    --line-deep: #059347;
+    --line-soft: #DEF5E6;
+    --rule: #D3DACB;
+    --shadow: 0 12px 30px -18px rgba(31,46,40,0.35);
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+    line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.001s !important; transition-duration:0.001s !important;}
+  }
+
+  .wrap{max-width:980px; margin:0 auto; padding:0 24px;}
+
+  /* ---------- HERO ---------- */
+  header.hero{
+    padding:76px 0 40px;
+    position:relative;
+    overflow:hidden;
+  }
+  .eyebrow{
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12.5px;
+    letter-spacing:.14em;
+    color:var(--ink-soft);
+    text-transform:uppercase;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:26px;height:1px;background:var(--ink-faint);
+    display:inline-block;
+  }
+  h1{
+    font-family:"Noto Serif TC",serif;
+    font-weight:900;
+    font-size:clamp(30px, 5.2vw, 50px);
+    line-height:1.28;
+    margin:0 0 20px;
+    letter-spacing:-0.01em;
+  }
+  h1 .hl{color:var(--aicom);}
+  .lede{
+    font-size:17px;
+    color:var(--ink-soft);
+    max-width:560px;
+    margin:0 0 8px;
+  }
+  .quote-strip{
+    margin-top:34px;
+    border-left:3px solid var(--aicom);
+    padding:6px 0 6px 20px;
+    font-family:"Noto Serif TC",serif;
+    font-size:17px;
+    font-weight:500;
+    color:var(--ink);
+  }
+  .quote-strip span{color:var(--ink-faint); font-size:13px; font-family:"Noto Sans TC",sans-serif; display:block; margin-top:6px;}
+
+  /* ---------- SCENE: phone mocks ---------- */
+  .scene-label{
+    text-align:center;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    color:var(--ink-faint);
+    margin:56px 0 20px;
+  }
+  .scene{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:28px;
+    align-items:start;
+  }
+  @media (max-width:680px){ .scene{grid-template-columns:1fr;} }
+
+  .phone{
+    background:var(--card);
+    border-radius:22px;
+    box-shadow:var(--shadow);
+    padding:0;
+    overflow:hidden;
+    border:1px solid var(--rule);
+  }
+  .phone-bar{
+    padding:14px 18px;
+    font-family:"IBM Plex Mono", monospace;
+    font-size:12px;
+    font-weight:600;
+    letter-spacing:.06em;
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .phone-bar.line{ background:var(--line-green); color:#fff; }
+  .phone-bar.aicom{ background:var(--aicom); color:#fff; }
+  .dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.75);}
+
+  .phone-body{ padding:18px; min-height:280px; }
+
+  /* messy chat bubbles for LINE */
+  .bubble{
+    max-width:78%;
+    padding:9px 13px;
+    border-radius:14px;
+    font-size:13.5px;
+    margin-bottom:10px;
+    background:var(--line-soft);
+    color:var(--ink);
+    box-shadow:0 2px 5px rgba(0,0,0,0.04);
+  }
+  .bubble.right{ margin-left:auto; background:#f0f0ee; }
+  .bubble.photo{
+    width:60%;
+    height:52px;
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:var(--ink-faint);
+    background:repeating-linear-gradient(135deg, #eef1ea, #eef1ea 6px, #e3e8db 6px, #e3e8db 12px);
+    border-radius:12px;
+  }
+  .bubble.tilt2{ transform:rotate(-0.6deg); }
+  .bubble.tilt1{ transform:rotate(0.7deg); }
+  .caption-under{
+    text-align:center; font-size:12.5px; color:var(--ink-faint);
+    padding:14px 18px 18px;
+  }
+
+  /* clean structured card for AICOM */
+  .field{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:11px 0;
+    border-bottom:1px dashed var(--rule);
+    font-size:13.5px;
+  }
+  .field:last-child{border-bottom:none;}
+  .field .k{ color:var(--ink-soft); }
+  .field .v{ font-weight:700; color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:13px;}
+  .field .v.tag{
+    background:var(--aicom-soft); color:var(--aicom-deep);
+    padding:2px 9px; border-radius:20px; font-size:12px;
+  }
+
+  /* ---------- SECTION HEADERS ---------- */
+  section{ padding:60px 0; }
+  .sec-head{ margin-bottom:30px; }
+  .sec-head .num{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px; color:var(--aicom-deep);
+    letter-spacing:.1em;
+  }
+  .sec-head h2{
+    font-family:"Noto Serif TC",serif;
+    font-size:clamp(22px,3vw,30px);
+    margin:6px 0 0;
+    font-weight:700;
+  }
+
+  /* ---------- TABLE ---------- */
+  .compare-table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--card);
+    border-radius:16px;
+    overflow:hidden;
+    box-shadow:var(--shadow);
+    font-size:14.5px;
+  }
+  .compare-table th, .compare-table td{
+    padding:13px 16px;
+    text-align:left;
+    border-bottom:1px solid var(--rule);
+    vertical-align:top;
+  }
+  .compare-table thead th{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    padding-top:16px;
+    padding-bottom:16px;
+  }
+  .compare-table thead th:first-child{ background:var(--bg-deep); color:var(--ink-soft); width:26%; }
+  .compare-table thead th.aicom-col{ background:var(--aicom); color:#fff; }
+  .compare-table thead th.line-col{ background:var(--line-green); color:#fff; }
+  .compare-table td:first-child{ color:var(--ink-soft); font-weight:500; background:var(--bg-deep); }
+  .compare-table tbody tr:last-child td{ border-bottom:none; }
+  .compare-table tbody tr:hover td{ background:#FBF9F4; }
+  .compare-table tbody tr:hover td:first-child{ background:var(--bg-deep); }
+
+  @media (max-width:680px){
+    .compare-table thead{ display:none; }
+    .compare-table, .compare-table tbody, .compare-table tr, .compare-table td{ display:block; width:100%; }
+    .compare-table tr{
+      margin-bottom:14px; border-radius:12px; overflow:hidden;
+      border:1px solid var(--rule);
+    }
+    .compare-table td{ border-bottom:1px solid var(--rule); }
+    .compare-table td:first-child{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.04em; }
+    .compare-table td:nth-child(2)::before{ content:"AICOM　"; font-weight:700; color:var(--aicom-deep); display:block; font-size:11.5px; margin-bottom:3px; font-family:"IBM Plex Mono",monospace;}
+    .compare-table td:nth-child(3)::before{ content:"LINE　"; font-weight:700; color:var(--line-deep); display:block; font-size:11.5px; margin-bottom:3px; font-family:"IBM Plex Mono",monospace;}
+  }
+
+  /* ---------- TWO COLUMN "convenient" lists ---------- */
+  .two-col{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:680px){ .two-col{grid-template-columns:1fr;} }
+  .conv-card{
+    background:var(--card);
+    border-radius:16px;
+    padding:26px 24px;
+    box-shadow:var(--shadow);
+    border-top:4px solid var(--rule);
+  }
+  .conv-card.line{ border-top-color:var(--line-green); }
+  .conv-card.aicom{ border-top-color:var(--aicom); }
+  .conv-card h3{
+    font-family:"Noto Serif TC",serif;
+    margin:0 0 16px;
+    font-size:18px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .conv-card.line h3{ color:var(--line-deep); }
+  .conv-card.aicom h3{ color:var(--aicom-deep); }
+  .conv-card ul{ margin:0; padding-left:0; list-style:none; }
+  .conv-card li{
+    padding:8px 0 8px 20px;
+    position:relative;
+    font-size:14.5px;
+    color:var(--ink-soft);
+    border-bottom:1px solid var(--rule);
+  }
+  .conv-card li:last-child{ border-bottom:none; }
+  .conv-card li::before{
+    content:"–";
+    position:absolute; left:0; color:var(--ink-faint);
+  }
+
+  /* ---------- scenario ---------- */
+  .scenario-box{
+    background:var(--card);
+    border-radius:16px;
+    box-shadow:var(--shadow);
+    padding:28px 26px;
+  }
+  .scenario-q{
+    font-family:"Noto Serif TC",serif;
+    font-size:17px;
+    margin:0 0 20px;
+    color:var(--ink);
+  }
+  .scenario-row{
+    display:flex; gap:14px; padding:14px 0; border-top:1px dashed var(--rule);
+    font-size:14.5px;
+  }
+  .scenario-row:first-of-type{ border-top:none; }
+  .scenario-row .tag{
+    flex:0 0 auto;
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11.5px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:20px;
+    height:fit-content;
+  }
+  .scenario-row.line .tag{ background:var(--line-soft); color:var(--line-deep); }
+  .scenario-row.aicom .tag{ background:var(--aicom-soft); color:var(--aicom-deep); }
+  .scenario-row p{ margin:0; color:var(--ink-soft); }
+
+  /* ---------- combo suggestion ---------- */
+  .combo{
+    display:grid; grid-template-columns:1fr 1fr;
+    gap:20px;
+  }
+  @media (max-width:680px){ .combo{grid-template-columns:1fr;} }
+  .combo-card{
+    border-radius:16px;
+    padding:26px 24px;
+    color:#fff;
+  }
+  .combo-card.line{ background:linear-gradient(160deg, var(--line-green), var(--line-deep)); }
+  .combo-card.aicom{ background:linear-gradient(160deg, var(--aicom), var(--aicom-deep)); }
+  .combo-card h3{ font-family:"Noto Serif TC",serif; margin:0 0 12px; font-size:19px; }
+  .combo-card p{ margin:0; font-size:14.5px; opacity:.92; }
+
+  .final-line{
+    text-align:center;
+    margin:56px 0 10px;
+    font-family:"Noto Serif TC",serif;
+    font-size:18px;
+    color:var(--ink);
+    max-width:640px;
+    margin-left:auto; margin-right:auto;
+  }
+  .final-line b{ color:var(--aicom-deep); }
+  .final-line .g{ color:var(--line-deep); }
+
+  footer{
+    padding:40px 0 60px;
+    text-align:center;
+    font-size:12.5px;
+    color:var(--ink-faint);
+  }
+  footer a{ color:var(--ink-soft); }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="hero">
+    <div class="eyebrow">照護溝通工具比較</div>
+    <h1>LINE 聊得動，但<span class="hl">照護紀錄</span>要靠 AICOM</h1>
+    <p class="lede">LINE 是通用通訊軟體；AICOM 是專為外籍看護與家庭遠端照護設計的工具。兩者定位不同，不必二選一。</p>
+    <div class="quote-strip">
+      LINE 適合即時聯絡，AICOM 專注遠端照護。AICOM 不只是聊天翻譯，更把中印溝通、每日照護報告與健康紀錄整合在一起，讓家人即使不在長輩身邊，也能清楚掌握每天的照護情形。
+      <span>— 最適合的對外說法</span>
+    </div>
+  </header>
+
+  <div class="scene-label">同一個問題，兩種畫面 —— 媽媽今天吃藥了嗎？喝多少水？有沒有排便？</div>
+  <div class="scene">
+    <div class="phone">
+      <div class="phone-bar line"><span class="dot"></span> LINE 對話串</div>
+      <div class="phone-body">
+        <div class="bubble tilt1">阿姨早安 🌤️</div>
+        <div class="bubble photo tilt2">[早餐照片]</div>
+        <div class="bubble right">藥有吃嗎？</div>
+        <div class="bubble tilt1">有吃了 還有喝水</div>
+        <div class="bubble right">喝多少？有大便嗎？</div>
+        <div class="bubble tilt2">今天心情不錯 😊</div>
+      </div>
+      <div class="caption-under">重點混在問候、照片和閒聊裡，事後很難查找</div>
+    </div>
+
+    <div class="phone">
+      <div class="phone-bar aicom"><span class="dot"></span> AICOM 每日照護報告</div>
+      <div class="phone-body">
+        <div class="field"><span class="k">用藥</span><span class="v tag">已服用</span></div>
+        <div class="field"><span class="k">喝水</span><span class="v">1200 ml</span></div>
+        <div class="field"><span class="k">排便</span><span class="v tag">正常・1 次</span></div>
+        <div class="field"><span class="k">精神狀況</span><span class="v">良好</span></div>
+        <div class="field"><span class="k">走路</span><span class="v">有・15 分鐘</span></div>
+        <div class="field"><span class="k">備註</span><span class="v" style="font-family:inherit;font-weight:400;color:var(--ink-soft);">胃口正常</span></div>
+      </div>
+      <div class="caption-under">固定欄位，家人打開就能一眼看懂</div>
+    </div>
+  </div>
+
+  <section id="table">
+    <div class="sec-head">
+      <div class="num">01 · 完整比較</div>
+      <h2>核心定位與功能</h2>
+    </div>
+    <table class="compare-table">
+      <thead>
+        <tr>
+          <th>比較項目</th>
+          <th class="aicom-col">AICOM</th>
+          <th class="line-col">LINE</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>主要定位</td><td>中印溝通、外籍看護及遠端照護</td><td>一般社交與即時通訊</td></tr>
+        <tr><td>中文／印尼文翻譯</td><td>內建照護情境的即時翻譯</td><td>一般聊天沒有專門的中印照護翻譯流程</td></tr>
+        <tr><td>每日照護報告</td><td>有固定欄位，可依項目填寫</td><td>只能用聊天文字自行回報</td></tr>
+        <tr><td>健康紀錄</td><td>可集中記錄用藥、喝水、排便、精神狀況等</td><td>訊息散落在聊天室中，不易統整</td></tr>
+        <tr><td>家人遠端查看</td><td>可直接查看結構化照護資料</td><td>必須翻找聊天紀錄</td></tr>
+        <tr><td>語音播放</td><td>可將翻譯內容播放給看護聆聽</td><td>支援語音訊息，但不是照護翻譯播放流程</td></tr>
+        <tr><td>文字、照片傳送</td><td>依 AICOM 現有功能使用</td><td>功能成熟，支援文字、照片、影片及檔案</td></tr>
+        <tr><td>語音／視訊通話</td><td>不是主要功能</td><td>支援語音及視訊通話</td></tr>
+        <tr><td>群組聊天</td><td>不是主要定位</td><td>群組聊天成熟且普及</td></tr>
+        <tr><td>安裝方式</td><td>網頁開啟，可加入手機主畫面</td><td>必須安裝 App、註冊帳號及加入好友</td></tr>
+        <tr><td>初次使用</td><td>開啟網址即可使用，流程較集中</td><td>大多數人已熟悉，但功能選項較多</td></tr>
+        <tr><td>長期紀錄查詢</td><td>照護資料分類清楚，比較容易查找</td><td>聊天內容多時，很難快速找到特定紀錄</td></tr>
+        <tr><td>適合對象</td><td>聘有印尼看護的家庭、遠端照護家人</td><td>一般親友、工作及社交通訊</td></tr>
+        <tr><td>最大優勢</td><td>翻譯、照護及健康紀錄整合在同一處</td><td>使用者多、通話與即時聊天方便</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section id="convenience">
+    <div class="sec-head">
+      <div class="num">02 · 使用方便性</div>
+      <h2>各自方便在哪裡</h2>
+    </div>
+    <div class="two-col">
+      <div class="conv-card line">
+        <h3>LINE 比較方便的地方</h3>
+        <ul>
+          <li>多數人已經安裝，不必重新學習</li>
+          <li>即時聊天、通知、照片及視訊通話功能成熟</li>
+          <li>適合臨時聯絡與一般生活對話</li>
+          <li>可在手機及電腦上使用</li>
+        </ul>
+      </div>
+      <div class="conv-card aicom">
+        <h3>AICOM 比較方便的地方</h3>
+        <ul>
+          <li>不必在大量聊天訊息中尋找重要照護資料</li>
+          <li>看護可依固定項目填寫，減少漏報</li>
+          <li>中文與印尼文溝通集中在同一個工具內</li>
+          <li>家人不在現場，也能有系統地了解長輩狀況</li>
+          <li>使用網頁即可進入，不必加入好友或建立聊天群組</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="scenario">
+    <div class="sec-head">
+      <div class="num">03 · 實際使用差異</div>
+      <h2>同一個提問，兩種結果</h2>
+    </div>
+    <div class="scenario-box">
+      <p class="scenario-q">假設家人想知道媽媽今天有沒有吃藥、喝多少水、是否排便：</p>
+      <div class="scenario-row line">
+        <span class="tag">LINE</span>
+        <p>看護逐項傳訊息，內容可能混在照片、問候及其他聊天中，日後不容易查找。</p>
+      </div>
+      <div class="scenario-row aicom">
+        <span class="tag">AICOM</span>
+        <p>看護直接填寫照護報告，家人打開後即可依項目查看，資料較完整、清楚。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="combo">
+    <div class="sec-head">
+      <div class="num">04 · 建議使用方式</div>
+      <h2>兩者搭配，而不是二選一</h2>
+    </div>
+    <div class="combo">
+      <div class="combo-card line">
+        <h3>LINE 負責</h3>
+        <p>緊急通知、通話、照片及臨時聯絡。</p>
+      </div>
+      <div class="combo-card aicom">
+        <h3>AICOM 負責</h3>
+        <p>中印翻譯、每日照護報告、健康資料及長期紀錄。</p>
+      </div>
+    </div>
+  </section>
+
+  <p class="final-line"><b>AICOM</b> 補足 <span class="g">LINE</span> 在照護紀錄與中印溝通上的不足 —— 不是取代，是分工。</p>
+
+  <footer>
+    參考：<a href="https://www.line.me/?utm_source=chatgpt.com" target="_blank" rel="noopener">LINE 官方功能介紹</a>
+  </footer>
+</div>
+
+</body>
+</html>
