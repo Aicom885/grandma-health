@@ -413,7 +413,7 @@
     .combo-card{ padding:20px 18px; }
     .combo-card:hover{ transform:none; }
 
-    .final-line{ font-size:15.5px; padding:18px 18px; margin:40px 0 8px; }
+    .final-line{ padding:16px 14px; margin:40px 0 8px; }
 
     footer{ padding:28px 0 44px; }
   }
@@ -533,11 +533,12 @@
     text-align:center;
     margin:56px 0 10px;
     font-family:"Noto Serif TC",serif;
-    font-size:18px;
+    font-size:clamp(14px, 3.6vw, 18px);
+    line-height:1.6;
     color:var(--ink);
     max-width:640px;
     margin-left:auto; margin-right:auto;
-    padding:22px 28px;
+    padding:22px 24px;
     border-radius:16px;
     background:linear-gradient(90deg, var(--aicom-soft), var(--line-soft));
     background-size:200% 100%;
