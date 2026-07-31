@@ -1,0 +1,313 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="依照圖片完成 iPhone Chrome 通知與訊息聲設定。">
+  <title>iPhone 訊息通知與訊息聲設定</title>
+  <style>
+    :root {
+      --blue: #1677d2;
+      --blue-dark: #075eaa;
+      --red: #e53935;
+      --ink: #122033;
+      --muted: #5d6978;
+      --line: #dce6f0;
+      --soft: #f4f8fc;
+      --white: #fff;
+      --shadow: 0 14px 40px rgba(35, 72, 105, .12);
+      --radius: 22px;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 84px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--white);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif;
+      line-height: 1.65;
+    }
+    button, a { font: inherit; }
+    a { color: inherit; }
+    img { display: block; max-width: 100%; }
+    .site-header {
+      position: sticky; top: 0; z-index: 20;
+      background: rgba(255,255,255,.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(16px);
+    }
+    .nav {
+      width: min(1120px, calc(100% - 32px)); height: 70px;
+      margin: 0 auto; display: flex; align-items: center; gap: 28px;
+    }
+    .brand { margin-right: auto; font-weight: 800; letter-spacing: -.02em; }
+    .nav a { position: relative; text-decoration: none; color: var(--muted); font-weight: 700; }
+    .nav a:hover, .nav a:focus-visible, .nav a.active { color: var(--blue); }
+    .nav a.active::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: -22px;
+      height: 3px; border-radius: 3px; background: var(--blue);
+    }
+    .menu-button { display: none; border: 0; background: transparent; color: var(--ink); padding: 8px; }
+    .menu-button svg { width: 26px; height: 26px; }
+    main { overflow: clip; }
+    .hero {
+      width: min(1120px, calc(100% - 32px)); min-height: 390px;
+      margin: 0 auto; display: grid; grid-template-columns: 1.25fr .75fr;
+      align-items: center; gap: 64px; padding: 72px 0;
+    }
+    .hero h1 {
+      margin: 0 0 20px; max-width: 760px;
+      font-size: clamp(2.2rem, 5vw, 4.8rem); line-height: 1.08; letter-spacing: -.055em;
+    }
+    .hero p { max-width: 670px; margin: 0; color: var(--muted); font-size: 1.15rem; }
+    .hero-art {
+      width: 220px; height: 300px; justify-self: center; position: relative;
+      border: 5px solid #111820; border-radius: 38px; background: white; box-shadow: var(--shadow);
+    }
+    .hero-art::before {
+      content: ""; position: absolute; top: 10px; left: 50%; width: 72px; height: 18px;
+      transform: translateX(-50%); background: #111820; border-radius: 20px;
+    }
+    .bell {
+      position: absolute; inset: 0; margin: auto; width: 92px; height: 92px;
+      display: grid; place-items: center; color: var(--blue); background: #eaf4ff; border-radius: 50%;
+      box-shadow: 0 0 0 14px #f5faff;
+    }
+    .bell svg { width: 52px; height: 52px; fill: currentColor; }
+    .guide { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
+    .section-title {
+      display: flex; align-items: center; gap: 18px; margin: 32px 0 0;
+      color: var(--blue-dark); font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.25;
+    }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: #a8cff4; }
+    .step {
+      min-height: 620px; display: grid; grid-template-columns: 1fr 1fr;
+      align-items: center; gap: 72px; padding: 72px 0; border-bottom: 1px solid var(--line);
+    }
+    .step:nth-of-type(even) { background: linear-gradient(90deg, transparent, var(--soft) 20%, var(--soft) 80%, transparent); }
+    .step:nth-of-type(odd) .shot { order: 2; }
+    .step-copy { display: grid; grid-template-columns: 58px 1fr; gap: 22px; align-items: start; }
+    .number {
+      width: 52px; height: 52px; display: grid; place-items: center;
+      color: white; background: var(--red); border-radius: 50%; font-size: 1.45rem; font-weight: 850;
+      box-shadow: 0 8px 18px rgba(229,57,53,.22);
+    }
+    .step h3 { margin: 2px 0 10px; font-size: clamp(1.4rem, 3vw, 2.05rem); line-height: 1.3; }
+    .step p { margin: 0; color: var(--muted); font-size: 1.08rem; }
+    .note {
+      margin-top: 18px; padding: 14px 16px; border-left: 4px solid var(--blue);
+      color: #405165; background: #edf6ff; border-radius: 0 12px 12px 0; font-size: .98rem;
+    }
+    .shot {
+      width: min(360px, 100%); justify-self: center; padding: 10px;
+      background: white; border: 1px solid #d7e2ec; border-radius: 28px; box-shadow: var(--shadow);
+    }
+    .shot img { width: 100%; border-radius: 20px; cursor: zoom-in; }
+    .transition { padding: 34px; background: var(--soft); border: 1px solid var(--line); border-radius: var(--radius); }
+    .completion {
+      margin: 72px 0 120px; padding: 38px;
+      display: grid; grid-template-columns: auto 1fr; gap: 26px;
+      border: 2px solid #a8cff4; border-radius: var(--radius); background: #f8fbff;
+    }
+    .check-icon {
+      width: 72px; height: 72px; display: grid; place-items: center;
+      border: 5px solid var(--blue); border-radius: 50%; color: var(--blue);
+    }
+    .check-icon svg { width: 42px; height: 42px; }
+    .completion h2 { margin: 0 0 12px; font-size: 1.8rem; }
+    .check-list { margin: 0; padding: 0; list-style: none; columns: 2; }
+    .check-list li { break-inside: avoid; margin: 8px 0; color: #405165; }
+    .check-list li::before { content: "✓"; margin-right: 9px; color: var(--blue); font-weight: 900; }
+    .lightbox {
+      position: fixed; inset: 0; z-index: 50; display: none; place-items: center; padding: 28px;
+      background: rgba(7, 18, 30, .9); cursor: zoom-out;
+    }
+    .lightbox.open { display: grid; }
+    .lightbox img { max-width: min(92vw, 760px); max-height: 90vh; border-radius: 20px; box-shadow: 0 30px 80px #000; }
+    .lightbox button {
+      position: absolute; top: 18px; right: 22px; width: 46px; height: 46px;
+      border: 1px solid rgba(255,255,255,.4); border-radius: 50%; color: white; background: rgba(0,0,0,.25);
+      cursor: pointer; font-size: 1.6rem;
+    }
+    .progress {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 18; display: none;
+      height: 58px; padding: 10px 18px; align-items: center; gap: 14px;
+      background: rgba(255,255,255,.96); border-top: 1px solid var(--line); backdrop-filter: blur(14px);
+    }
+    .progress-bar { flex: 1; height: 8px; overflow: hidden; background: #e6eef6; border-radius: 99px; }
+    .progress-bar span { display: block; width: 0; height: 100%; background: var(--blue); border-radius: inherit; transition: width .2s; }
+    .progress strong { min-width: 82px; color: var(--blue-dark); font-size: .9rem; }
+    :focus-visible { outline: 3px solid rgba(22,119,210,.45); outline-offset: 4px; }
+    @media (max-width: 760px) {
+      html { scroll-padding-top: 66px; }
+      .nav { height: 60px; }
+      .brand { font-size: .92rem; }
+      .nav-links {
+        position: absolute; top: 60px; left: 0; right: 0; display: none;
+        padding: 12px 20px 18px; background: white; border-bottom: 1px solid var(--line);
+      }
+      .nav-links.open { display: grid; gap: 12px; }
+      .nav a.active::after { display: none; }
+      .menu-button { display: block; }
+      .hero { min-height: auto; grid-template-columns: 1fr auto; gap: 18px; padding: 54px 0 62px; }
+      .hero h1 { font-size: clamp(2rem, 10vw, 3.1rem); }
+      .hero p { font-size: 1rem; }
+      .hero-art { width: 86px; height: 142px; border-width: 3px; border-radius: 18px; }
+      .hero-art::before { width: 34px; height: 9px; top: 5px; }
+      .bell { width: 46px; height: 46px; box-shadow: 0 0 0 7px #f5faff; }
+      .bell svg { width: 26px; height: 26px; }
+      .section-title { margin-top: 18px; font-size: 1.35rem; }
+      .step, .step:nth-of-type(odd) { min-height: 0; grid-template-columns: 1fr; gap: 28px; padding: 46px 0; background: white; }
+      .step:nth-of-type(odd) .shot { order: initial; }
+      .step-copy { grid-template-columns: 44px 1fr; gap: 14px; }
+      .number { width: 42px; height: 42px; font-size: 1.15rem; }
+      .step h3 { font-size: 1.35rem; }
+      .shot { width: min(330px, 88vw); }
+      .transition { padding: 24px 20px; }
+      .completion { grid-template-columns: 1fr; margin-bottom: 96px; padding: 28px 22px; }
+      .check-icon { width: 58px; height: 58px; border-width: 4px; }
+      .check-list { columns: 1; }
+      .progress { display: flex; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } * { transition: none !important; } }
+  </style>
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="主要導覽">
+      <div class="brand">iPhone 訊息通知與訊息聲設定</div>
+      <div class="nav-links" id="navLinks">
+        <a href="#chrome">Chrome 通知</a>
+        <a href="#sound">訊息聲</a>
+      </div>
+      <button class="menu-button" id="menuButton" aria-label="開啟導覽選單" aria-expanded="false" aria-controls="navLinks">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1>照著圖片，完成通知與提示聲設定</h1>
+        <p>依序完成以下 9 個步驟，開啟 Chrome 訊息通知，並設定 iPhone 的訊息提示聲。</p>
+      </div>
+      <div class="hero-art" aria-hidden="true">
+        <div class="bell"><svg viewBox="0 0 24 24"><path d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6-2-2.4V9a5 5 0 0 0-4-4.9V3a1 1 0 0 0-2 0v1.1A5 5 0 0 0 7 9v4.6L5 16v2h14v-2Z"/></svg></div>
+      </div>
+    </section>
+
+    <div class="guide">
+      <section id="chrome" aria-labelledby="chrome-title">
+        <h2 class="section-title" id="chrome-title">第一部分｜開啟 Chrome 訊息通知</h2>
+
+        <article class="step" data-step="1">
+          <div class="step-copy"><span class="number">1</span><div><h3>進入「通知」設定</h3><p>開啟 iPhone 的「設定」，向下找到並點選「通知」。</p><div class="note">「通知」頁面可管理各個 App 是否顯示通知及播放提示聲。</div></div></div>
+          <figure class="shot"><img src="assets/1.jpg" alt="iPhone 設定畫面，紅框標示通知選項" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="2">
+          <div class="step-copy"><span class="number">2</span><div><h3>選擇 Chrome</h3><p>在 App 清單中找到並點選「Chrome」。</p><div class="note">若清單較長，可向下滑動尋找 Chrome。</div></div></div>
+          <figure class="shot"><img src="assets/2.jpg" alt="通知 App 清單，紅框標示 Chrome" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="3">
+          <div class="step-copy"><span class="number">3</span><div><h3>開啟「允許通知」</h3><p>將「允許通知」開關打開。開關顯示綠色，表示已啟用。</p></div></div>
+          <figure class="shot"><img src="assets/3.jpg" alt="Chrome 通知設定畫面，標示允許通知與聲音開關" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="4">
+          <div class="step-copy"><span class="number">4</span><div><h3>開啟通知「聲音」</h3><p>將「聲音」開關打開。開關顯示綠色後，Chrome 通知才會播放提示聲。</p><div class="note">通知顯示位置可依需求選擇；至少保留一種提示方式即可看見通知。</div></div></div>
+          <figure class="shot"><img src="assets/3.jpg" alt="Chrome 通知設定畫面，紅框標示聲音開關" loading="lazy"></figure>
+        </article>
+      </section>
+
+      <section id="sound" aria-labelledby="sound-title">
+        <h2 class="section-title" id="sound-title">第二部分｜設定 iPhone 訊息聲</h2>
+
+        <article class="step" data-step="5">
+          <div class="step-copy transition"><span class="number">5</span><div><h3>返回「設定」主畫面</h3><p>完成 Chrome 通知設定後，返回 iPhone「設定」主畫面。</p><div class="note">原始圖片未標示 5；這是連接兩段操作的必要轉場。</div></div></div>
+          <figure class="shot"><img src="assets/4.jpg" alt="iPhone 設定主畫面，紅框標示音效與觸覺回饋" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="6">
+          <div class="step-copy"><span class="number">6</span><div><h3>進入「音效與觸覺回饋」</h3><p>在 iPhone「設定」主畫面點選「音效與觸覺回饋」。</p></div></div>
+          <figure class="shot"><img src="assets/4.jpg" alt="iPhone 設定主畫面，紅框標示音效與觸覺回饋" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="7">
+          <div class="step-copy"><span class="number">7</span><div><h3>開啟「訊息聲」選單</h3><p>在「音效與觸覺回饋」頁面中，點選「訊息聲」。</p><div class="note">請同時確認上方鈴聲和提示聲的音量不是最低。</div></div></div>
+          <figure class="shot"><img src="assets/5.jpg" alt="音效與觸覺回饋畫面，紅框標示訊息聲" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="8">
+          <div class="step-copy"><span class="number">8</span><div><h3>選擇「經典」分類</h3><p>在「訊息聲」清單中向下滑動，點選「經典」。</p><div class="note">右側會顯示目前選用的聲音。</div></div></div>
+          <figure class="shot"><img src="assets/6.jpg" alt="訊息聲清單，紅框標示經典分類" loading="lazy"></figure>
+        </article>
+
+        <article class="step" data-step="9">
+          <div class="step-copy"><span class="number">9</span><div><h3>選擇「小步舞曲」並完成</h3><p>點選「小步舞曲」。左側出現藍色勾選符號，即表示設定完成。</p><div class="note">點選聲音名稱時可先試聽；完成後可直接返回，不需另外儲存。</div></div></div>
+          <figure class="shot"><img src="assets/7.jpg" alt="經典訊息聲清單，紅框標示小步舞曲" loading="lazy"></figure>
+        </article>
+      </section>
+
+      <section class="completion" id="complete" aria-labelledby="complete-title">
+        <div class="check-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m5 12 4 4L19 6" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div><h2 id="complete-title">完成檢查</h2><ul class="check-list"><li>Chrome 已開啟「允許通知」</li><li>Chrome 已開啟通知「聲音」</li><li>訊息聲已選擇「小步舞曲」</li><li>鈴聲和提示聲音量不是最低</li></ul></div>
+      </section>
+    </div>
+  </main>
+
+  <div class="progress" aria-label="閱讀進度"><div class="progress-bar"><span id="progressBar"></span></div><strong id="progressText">0 / 9 完成</strong></div>
+  <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="放大圖片"><button aria-label="關閉圖片">×</button><img alt=""></div>
+
+  <script>
+    const menuButton = document.querySelector('#menuButton');
+    const navLinks = document.querySelector('#navLinks');
+    menuButton.addEventListener('click', () => {
+      const open = navLinks.classList.toggle('open');
+      menuButton.setAttribute('aria-expanded', open);
+    });
+    navLinks.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      menuButton.setAttribute('aria-expanded', 'false');
+    });
+
+    const lightbox = document.querySelector('#lightbox');
+    const lightboxImage = lightbox.querySelector('img');
+    document.querySelectorAll('.shot img').forEach(image => image.addEventListener('click', () => {
+      lightboxImage.src = image.src;
+      lightboxImage.alt = image.alt;
+      lightbox.classList.add('open');
+      document.body.style.overflow = 'hidden';
+      lightbox.querySelector('button').focus();
+    }));
+    const closeLightbox = () => {
+      lightbox.classList.remove('open');
+      document.body.style.overflow = '';
+    };
+    lightbox.addEventListener('click', closeLightbox);
+    lightbox.querySelector('button').addEventListener('click', closeLightbox);
+    lightboxImage.addEventListener('click', event => event.stopPropagation());
+    document.addEventListener('keydown', event => { if (event.key === 'Escape') closeLightbox(); });
+
+    const steps = [...document.querySelectorAll('.step')];
+    const progressBar = document.querySelector('#progressBar');
+    const progressText = document.querySelector('#progressText');
+    const updateProgress = () => {
+      const marker = innerHeight * .48;
+      const reached = steps.filter(step => step.getBoundingClientRect().top < marker).length;
+      progressBar.style.width = `${reached / 9 * 100}%`;
+      progressText.textContent = `${reached} / 9 完成`;
+    };
+    const sections = [...document.querySelectorAll('main section[id="chrome"], main section[id="sound"]')];
+    const navAnchors = [...document.querySelectorAll('.nav-links a')];
+    const updateNav = () => {
+      const active = [...sections].reverse().find(section => section.getBoundingClientRect().top <= 120);
+      navAnchors.forEach(a => a.classList.toggle('active', active && a.hash === `#${active.id}`));
+    };
+    addEventListener('scroll', () => { updateProgress(); updateNav(); }, { passive: true });
+    updateProgress(); updateNav();
+  </script>
+</body>
+</html>
