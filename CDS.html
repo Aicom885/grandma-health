@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>外籍看護每日工作表 / Jadwal Harian Pengasuh</title>
+<title>Mia 看護每日工作表 / Jadwal Harian Pengasuh</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Sans:wght@400;500;700&display=swap');
 
@@ -322,8 +322,8 @@
 
 <header>
   <div>
-    <div class="title-zh">🏠 外籍看護每日工作表</div>
-    <div class="title-id">Jadwal Pekerjaan Harian Pengasuh</div>
+    <div class="title-zh">🏠 Mia 看護每日工作表</div>
+    <div class="title-id">Jadwal Pekerjaan Harian Mia</div>
   </div>
   <div class="meta">
     中文 ／ Bahasa Indonesia<br>
@@ -335,231 +335,180 @@
 <!-- 整日時間軸（寬度＝該時段實際長度） -->
 <nav class="timeline-bar" aria-label="時段導覽">
   <div class="timeline">
-    <a href="#t1" style="background:var(--sunrise);   width:10.42%" title="早上 06:30–09:00"><span class="em">🌅</span><span class="lbl">06:30</span></a>
-    <a href="#t2" style="background:var(--morning);   width:8.33%"  title="上午 09:00–11:00"><span class="em">☀️</span><span class="lbl">09:00</span></a>
-    <a href="#t3" style="background:var(--noon);      width:8.33%"  title="中午 11:00–13:00"><span class="em">🍱</span><span class="lbl">11:00</span></a>
-    <a href="#t4" style="background:var(--afternoon); width:14.58%" title="下午 13:00–16:30"><span class="em">🏠</span><span class="lbl">13:00</span></a>
-    <a href="#t5" style="background:var(--evening);   width:16.67%" title="晚上 16:30–20:30"><span class="em">🌙</span><span class="lbl">16:30</span></a>
-    <a href="#t6" style="background:var(--bedtime);   width:4.17%"  title="睡前 20:30–21:30"><span class="em">😴</span><span class="lbl"></span></a>
-    <a href="#t7" style="background:var(--night);     width:37.50%" title="夜間 21:30–06:30"><span class="em">🌃</span><span class="lbl">21:30 – 06:30</span></a>
+    <a href="#t1" style="background:var(--sunrise);   width:12.50%" title="早上 05:30–08:30"><span class="em">🌅</span><span class="lbl">05:30</span></a>
+    <a href="#t2" style="background:var(--morning);   width:6.25%"  title="早上 08:30–09:30"><span class="em">🧹</span><span class="lbl">08:30</span></a>
+    <a href="#t3" style="background:var(--noon);      width:10.42%" title="上午 10:00–11:00"><span class="em">🍚</span><span class="lbl">10:00</span></a>
+    <a href="#t4" style="background:var(--afternoon); width:8.33%"  title="中午 12:30–14:00"><span class="em">😴</span><span class="lbl">12:30</span></a>
+    <a href="#t5" style="background:var(--evening);   width:6.25%"  title="下午 14:30–15:30"><span class="em">🧹</span><span class="lbl">14:30</span></a>
+    <a href="#t6" style="background:var(--bedtime);   width:8.33%"  title="下午 16:00–17:00"><span class="em">🍲</span><span class="lbl">16:00</span></a>
+    <a href="#t7" style="background:var(--night);     width:47.92%" title="晚上 18:00–21:30 ／夜間"><span class="em">🌙</span><span class="lbl">18:00 – 夜間</span></a>
   </div>
 </nav>
 
 <div class="wrap">
 <div class="grid">
 
-  <!-- 早上 -->
+  <!-- 早上 05:30-08:30 -->
   <div class="block c-sunrise" id="t1">
     <div class="block-header">
       <span class="emoji">🌅</span>
       <div class="time-zh">
-        早上 06:30 – 09:00
+        早上 05:30 – 08:30
         <div class="time-id">Pagi</div>
-      </div>
-      <span class="count">6</span>
-    </div>
-    <div class="task-list">
-      <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">幫阿嬤起床</div>
-        <div class="id">Bangunkan nenek</div></div></div>
-      <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">換尿布（我媽會自己換）</div>
-        <div class="id">Ganti pampers (Ibuku bisa menggantinya sendiri)</div></div></div>
-      <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">洗臉</div>
-        <div class="id">Cuci muka</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">做早餐吃早餐（或喝安素加蛋）</div>
-        <div class="id">Siapkan sarapan dan makan sarapan (Atau minum Ensure dengan telur)</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">開鐵門</div>
-        <div class="id">Bukalah gerbang besi itu</div></div></div>
-      <div class="task-item"><div class="task-num">6</div><div class="task-text">
-        <div class="zh">倒尿桶及清洗</div>
-        <div class="id">Mengosongkan dan membersihkan urinoir</div></div></div>
-    </div>
-  </div>
-
-  <!-- 上午 -->
-  <div class="block c-morning" id="t2">
-    <div class="block-header">
-      <span class="emoji">☀️</span>
-      <div class="time-zh">
-        上午 09:00 – 11:00
-        <div class="time-id">Pagi Menjelang Siang</div>
-      </div>
-      <span class="count">5</span>
-    </div>
-    <div class="task-list">
-      <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">陪阿嬤走一走</div>
-        <div class="id">Temani nenek berjalan</div></div></div>
-      <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">陪聊天</div>
-        <div class="id">Temani bicara</div></div></div>
-      <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">整理房間</div>
-        <div class="id">Rapikan kamar</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">洗衣服曬衣服</div>
-        <div class="id">Mencuci dan mengeringkan pakaian</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">喝杏仁果飲及喝水（如果還有）</div>
-        <div class="id">Catat setiap hari apakah nenek minum tablet enzim, susu almond, dan air</div></div></div>
-    </div>
-  </div>
-
-  <!-- 中午 -->
-  <div class="block c-noon" id="t3">
-    <div class="block-header">
-      <span class="emoji">🍱</span>
-      <div class="time-zh">
-        中午 11:00 – 13:00
-        <div class="time-id">Siang</div>
       </div>
       <span class="count">3</span>
     </div>
     <div class="task-list">
       <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">準備午餐</div>
-        <div class="id">Siapkan makan siang</div></div></div>
+        <div class="zh">陪阿公＆阿嬤散步</div>
+        <div class="id">Menemani Kakek & Nenek jalan-jalan pagi</div></div></div>
       <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">陪阿嬤吃午餐並不吃辣椒</div>
-        <div class="id">Aku makan siang bersama nenekku tapi tidak makan cabai</div></div></div>
+        <div class="zh">做早餐吃早餐：阿公是麥片加水煮蛋；阿嬤是水煮蛋＋營養飲料（阿嬤會自己泡）</div>
+        <div class="id">Siapkan dan makan sarapan: Kakek makan oatmeal dengan telur rebus, Nenek makan telur rebus + minuman bergizi (Nenek biasa menyeduhnya sendiri)</div></div></div>
       <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">飯後稍微整理</div>
-        <div class="id">Rapikan sedikit setelah makan</div></div></div>
+        <div class="zh">飯後稍做整理</div>
+        <div class="id">Bereskan sedikit setelah makan</div></div></div>
     </div>
   </div>
 
-  <!-- 下午 -->
+  <!-- 早上 08:30-09:30 家事 -->
+  <div class="block c-morning" id="t2">
+    <div class="block-header">
+      <span class="emoji">🧹</span>
+      <div class="time-zh">
+        早上 08:30 – 09:30
+        <div class="time-id">Bersih-bersih Rumah</div>
+      </div>
+      <span class="count">3</span>
+    </div>
+    <div class="task-list">
+      <div class="task-item"><div class="task-num">1</div><div class="task-text">
+        <div class="zh">每天要掃地</div>
+        <div class="id">Menyapu lantai setiap hari</div></div></div>
+      <div class="task-item"><div class="task-num">2</div><div class="task-text">
+        <div class="zh">2天要拖地及整理家務一次</div>
+        <div class="id">Mengepel lantai dan merapikan rumah setiap 2 hari sekali</div></div></div>
+      <div class="task-item"><div class="task-num">3</div><div class="task-text">
+        <div class="zh">如早上臨時有事較忙，家事打掃可以安排下午 02:30 到 03:30 完成</div>
+        <div class="id">Jika pagi hari sedang sibuk, pekerjaan rumah bisa dikerjakan pukul 14:30–15:30</div></div></div>
+    </div>
+  </div>
+
+  <!-- 上午 10:00-11:00 準備午餐 -->
+  <div class="block c-noon" id="t3">
+    <div class="block-header">
+      <span class="emoji">🍚</span>
+      <div class="time-zh">
+        上午 10:00 – 11:00
+        <div class="time-id">Menyiapkan Makan Siang</div>
+      </div>
+      <span class="count">3</span>
+    </div>
+    <div class="task-list">
+      <div class="task-item"><div class="task-num">1</div><div class="task-text">
+        <div class="zh">準備午餐煮飯：阿公吃半顆饅頭，阿嬤吃飯（1杯米＋1杯半的水）</div>
+        <div class="id">Siapkan makan siang: Kakek makan setengah mantou, Nenek makan nasi (1 cangkir beras + 1,5 cangkir air)</div></div></div>
+      <div class="task-item"><div class="task-num">2</div><div class="task-text">
+        <div class="zh">滷豬肉及飯菜饅頭可以使用電鍋蒸，外鍋加半杯水即可</div>
+        <div class="id">Daging babi kecap, lauk, dan mantou bisa dikukus dengan rice cooker, tambahkan setengah cangkir air di panci luar</div></div></div>
+      <div class="task-item"><div class="task-num">3</div><div class="task-text">
+        <div class="zh">每餐至少3道菜＋湯</div>
+        <div class="id">Setiap kali makan minimal 3 lauk + sup</div></div></div>
+    </div>
+  </div>
+
+  <!-- 中午 12:30-14:00 午休 -->
   <div class="block c-afternoon" id="t4">
-    <div class="block-header">
-      <span class="emoji">🏠</span>
-      <div class="time-zh">
-        下午 13:00 – 16:30
-        <div class="time-id">Sore</div>
-      </div>
-      <span class="count">5</span>
-    </div>
-    <div class="task-list">
-      <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">陪阿嬤休息</div>
-        <div class="id">Temani nenek istirahat</div></div></div>
-      <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">家事（打掃）</div>
-        <div class="id">Pekerjaan rumah tangga (membersihkan)</div></div></div>
-      <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">準備晚餐</div>
-        <div class="id">Siapkan makan malam</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">倒垃圾 PM 15:30</div>
-        <div class="id">Membuang sampah PM 15:30</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">若前一晚夜間有多次起床照顧，這段時間請安排自我休息</div>
-        <div class="id">Jika Anda bangun beberapa kali pada malam sebelumnya untuk merawat seseorang, luangkan waktu untuk beristirahat selama periode ini.</div></div></div>
-    </div>
-  </div>
-
-  <!-- 晚上 -->
-  <div class="block c-evening" id="t5">
-    <div class="block-header">
-      <span class="emoji">🌙</span>
-      <div class="time-zh">
-        晚上 16:30 – 20:30
-        <div class="time-id">Malam</div>
-      </div>
-      <span class="count">7</span>
-    </div>
-    <div class="task-list">
-      <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">吃晚餐</div>
-        <div class="id">Makan malam</div></div></div>
-      <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">洗澡協助</div>
-        <div class="id">Membantu nenek mandi</div></div></div>
-      <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">換尿布（我媽會自己換）</div>
-        <div class="id">Ganti pampers (Ibuku bisa menggantinya sendiri)</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">關鐵門</div>
-        <div class="id">Tutup gerbang besi itu</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">收衣服</div>
-        <div class="id">Kumpulkan pakaian</div></div></div>
-      <div class="task-item"><div class="task-num">6</div><div class="task-text">
-        <div class="zh">看電視</div>
-        <div class="id">Menonton televisi</div></div></div>
-      <div class="task-item"><div class="task-num">7</div><div class="task-text">
-        <div class="zh">吃水果及喝水</div>
-        <div class="id">Makan buah dan minum air</div></div></div>
-    </div>
-  </div>
-
-  <!-- 睡前 -->
-  <div class="block c-bedtime" id="t6">
     <div class="block-header">
       <span class="emoji">😴</span>
       <div class="time-zh">
-        睡前 20:30 – 21:30
-        <div class="time-id">Sebelum Tidur</div>
+        中午 12:30 – 14:00
+        <div class="time-id">Istirahat Siang</div>
       </div>
-      <span class="count">6</span>
+      <span class="count">2</span>
     </div>
     <div class="task-list">
       <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">準備睡覺</div>
-        <div class="id">Persiapan tidur</div></div></div>
+        <div class="zh">阿嬤＆阿公休息睡午覺</div>
+        <div class="id">Nenek & Kakek istirahat tidur siang</div></div></div>
       <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">檢查尿布</div>
-        <div class="id">Periksa pampers</div></div></div>
-      <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">關燈休息</div>
-        <div class="id">Matikan lampu dan istirahat</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">確認門鎖、安全與求救鈴可正常使用</div>
-        <div class="id">Pastikan pintu terkunci, aman, dan bel darurat dapat digunakan dengan baik</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">夏天阿嬤房間開冷氣及早上關冷氣</div>
-        <div class="id">Nenek menyalakan AC di kamarnya saat musim panas dan mematikannya di pagi hari</div></div></div>
-      <div class="task-item"><div class="task-num">6</div><div class="task-text">
-        <div class="zh">吃整腸酵素 2 顆</div>
-        <div class="id">Minum 2 tablet enzim pencernaan</div></div></div>
+        <div class="zh">請自己也安排午休</div>
+        <div class="id">Silakan atur waktu istirahat siang untuk diri sendiri juga</div></div></div>
     </div>
   </div>
 
-  <!-- 夜間 -->
+  <!-- 下午 14:30-15:30 家事備用時段 -->
+  <div class="block c-evening" id="t5">
+    <div class="block-header">
+      <span class="emoji">🧹</span>
+      <div class="time-zh">
+        下午 14:30 – 15:30
+        <div class="time-id">Waktu Cadangan Bersih-bersih</div>
+      </div>
+      <span class="count">1</span>
+    </div>
+    <div class="task-list">
+      <div class="task-item"><div class="task-num">1</div><div class="task-text">
+        <div class="zh">如早上臨時有事較忙，家事打掃可以安排此時段完成</div>
+        <div class="id">Jika pagi hari sedang sibuk, pekerjaan rumah bisa diselesaikan pada waktu ini</div></div></div>
+    </div>
+  </div>
+
+  <!-- 下午 16:00-17:00 準備晚餐 -->
+  <div class="block c-bedtime" id="t6">
+    <div class="block-header">
+      <span class="emoji">🍲</span>
+      <div class="time-zh">
+        下午 16:00 – 17:00
+        <div class="time-id">Menyiapkan Makan Malam</div>
+      </div>
+      <span class="count">3</span>
+    </div>
+    <div class="task-list">
+      <div class="task-item"><div class="task-num">1</div><div class="task-text">
+        <div class="zh">準備晚餐煮飯：阿公吃半顆饅頭，阿嬤吃飯（1杯米＋1杯半的水）</div>
+        <div class="id">Siapkan makan malam: Kakek makan setengah mantou, Nenek makan nasi (1 cangkir beras + 1,5 cangkir air)</div></div></div>
+      <div class="task-item"><div class="task-num">2</div><div class="task-text">
+        <div class="zh">滷豬肉及飯菜饅頭可以使用電鍋蒸，外鍋加半杯水即可</div>
+        <div class="id">Daging babi kecap, lauk, dan mantou bisa dikukus dengan rice cooker, tambahkan setengah cangkir air di panci luar</div></div></div>
+      <div class="task-item"><div class="task-num">3</div><div class="task-text">
+        <div class="zh">每餐至少3道菜＋湯</div>
+        <div class="id">Setiap kali makan minimal 3 lauk + sup</div></div></div>
+    </div>
+  </div>
+
+  <!-- 晚上 18:00-21:30 ／夜間 -->
   <div class="block c-night" id="t7">
     <div class="block-header">
-      <span class="emoji">🌃</span>
+      <span class="emoji">🌙</span>
       <div class="time-zh">
-        夜間 21:30 – 06:30
-        <div class="time-id">Pada Malam Hari</div>
+        晚上 18:00 – 21:30 ／夜間
+        <div class="time-id">Malam ／ Pada Malam Hari</div>
       </div>
       <span class="count">7</span>
     </div>
     <div class="task-list">
       <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">盥洗／洗澡／洗頭</div>
-        <div class="id">Mencuci / mandi / keramas</div></div></div>
+        <div class="zh">協助阿嬤洗澡</div>
+        <div class="id">Membantu Nenek mandi</div></div></div>
       <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">夜間以休息睡覺為主</div>
-        <div class="id">Pada malam hari, utamanya istirahat dan tidur</div></div></div>
+        <div class="zh">洗衣服</div>
+        <div class="id">Mencuci pakaian</div></div></div>
       <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">若阿嬤半夜醒來、開燈、下床、找人、按求救鈴，再起來查看與協助</div>
-        <div class="id">Jika nenek bangun tengah malam, menyalakan lampu, turun dari tempat tidur, mencari orang, atau menekan bel darurat, barulah bangun untuk memeriksa dan membantu</div></div></div>
+        <div class="zh">倒垃圾及丟回收（每週一至週六18:00以後）</div>
+        <div class="id">Membuang sampah dan barang daur ulang (Senin–Sabtu setelah pukul 18:00)</div></div></div>
       <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">若監視器有異常訊息，請起來查看</div>
-        <div class="id">Jika ada notifikasi tidak biasa dari kamera, tolong periksa</div></div></div>
+        <div class="zh">倒廚餘固定每週三＆每週日晚上19:00</div>
+        <div class="id">Membuang sampah dapur (sisa makanan) rutin setiap Rabu & Minggu pukul 19:00</div></div></div>
       <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">若阿嬤有跌倒風險，請立即協助並通知家人</div>
-        <div class="id">Jika ada risiko nenek jatuh, segera bantu dan beri tahu keluarga</div></div></div>
+        <div class="zh">睡覺前確認大門記得鎖</div>
+        <div class="id">Pastikan pintu utama sudah dikunci sebelum tidur</div></div></div>
       <div class="task-item"><div class="task-num">6</div><div class="task-text">
-        <div class="zh">若阿嬤只是短暫醒來但安全無事，可安撫後再回去休息</div>
-        <div class="id">Jika Nenek hanya terbangun sebentar tetapi dalam keadaan sehat dan selamat, tenangkan dia sebelum menyuruhnya kembali tidur</div></div></div>
+        <div class="zh">夜間若阿嬤及阿公醒來如有喊Mia需要協助時，請務必起來查看</div>
+        <div class="id">Jika Nenek atau Kakek terbangun di malam hari dan memanggil Mia untuk minta bantuan, harus segera bangun dan memeriksa</div></div></div>
       <div class="task-item"><div class="task-num">7</div><div class="task-text">
-        <div class="zh">不需要整晚都保持醒著</div>
-        <div class="id">Dia tidak perlu begadang sepanjang malam</div></div></div>
+        <div class="zh">如安全無事可回房繼續睡覺，不需要整晚都保持醒著，有事阿公＆阿嬤會叫Mia</div>
+        <div class="id">Jika aman-aman saja, boleh kembali ke kamar untuk tidur lagi; tidak perlu terjaga sepanjang malam, jika ada apa-apa Kakek & Nenek akan memanggil Mia</div></div></div>
     </div>
   </div>
 
@@ -571,60 +520,25 @@
         工作提醒
         <div class="time-id">Perhatikan</div>
       </div>
-      <span class="count">11</span>
+      <span class="count">3</span>
     </div>
     <div class="task-list">
       <div class="task-item"><div class="task-num">1</div><div class="task-text">
-        <div class="zh">與阿嬤吃飯要用筷子不能用手拿來吃</div>
-        <div class="id">Gunakan sumpit saat makan bersama Nenek, jangan pernah menggunakan tangan</div></div></div>
+        <div class="zh">使用瓦斯及刀具請留意自身安全以免受傷</div>
+        <div class="id">Berhati-hatilah saat menggunakan kompor gas dan pisau agar tidak terluka</div></div></div>
       <div class="task-item"><div class="task-num">2</div><div class="task-text">
-        <div class="zh">阿嬤走路要扶</div>
-        <div class="id">Bantu Nenek berjalan</div></div></div>
+        <div class="zh">使用任何物品用完請歸位，例如小凳子使用後請歸位，因阿公阿嬤眼睛不好，不小心沒看到會絆倒</div>
+        <div class="id">Kembalikan barang ke tempatnya setelah digunakan, misalnya bangku kecil, karena mata Kakek & Nenek kurang baik dan bisa tersandung jika tidak melihatnya</div></div></div>
       <div class="task-item"><div class="task-num">3</div><div class="task-text">
-        <div class="zh">阿嬤若蹲下再站起來，頭會暈走路很容易跌倒要注意，不要讓他去菜園</div>
-        <div class="id">Jika Nenek berjongkok lalu berdiri, ia akan merasa pusing dan mudah jatuh. Berhati-hatilah agar tidak membiarkannya pergi ke kebun sayur</div></div></div>
-      <div class="task-item"><div class="task-num">4</div><div class="task-text">
-        <div class="zh">若阿嬤跌倒，到餐廳拿木椅給阿嬤扶起來</div>
-        <div class="id">Jika Nenek jatuh, ambil kursi kayu dari ruang makan untuk membantunya berdiri</div></div></div>
-      <div class="task-item"><div class="task-num">5</div><div class="task-text">
-        <div class="zh">半夜監視器若有訊息要查看</div>
-        <div class="id">Periksa kamera keamanan untuk melihat pesan apa pun di malam hari</div></div></div>
-      <div class="task-item"><div class="task-num">6</div><div class="task-text">
-        <div class="zh">救鈴聲響起需前往房間查看</div>
-        <div class="id">Pergi ke kamarnya jika tombol panggilan darurat berbunyi</div></div></div>
-      <div class="task-item"><div class="task-num">7</div><div class="task-text">
-        <div class="zh">注意阿嬤是否每天大便，要記起來</div>
-        <div class="id">Ingat apakah Nenek buang air besar setiap hari</div></div></div>
-      <div class="task-item"><div class="task-num">8</div><div class="task-text">
-        <div class="zh">阿嬤房間尿桶要拿去倒及清洗</div>
-        <div class="id">Pispot nenek perlu dikosongkan dan dicuci agar tidak berbau</div></div></div>
-      <div class="task-item"><div class="task-num">9</div><div class="task-text">
-        <div class="zh">身體不舒服要看醫生告訴雇主帶去就醫</div>
-        <div class="id">Jika Anda merasa tidak enak badan dan perlu memeriksakan diri ke dokter, beritahu atasan Anda</div></div></div>
-      <div class="task-item"><div class="task-num">10</div><div class="task-text">
-        <div class="zh">每天需輸入健康管理系統網頁</div>
-        <div class="id">Input harian diperlukan ke halaman web sistem manajemen kesehatan</div></div></div>
-      <div class="task-item"><div class="task-num">11</div><div class="task-text">
-        <div class="zh">有問題請告訴家人：</div>
-        <div class="id">Beri tahu keluarga jika Anda mengalami masalah:</div>
-        <div class="contact-box">
-          <div class="contact-row">
-            <span class="name">📞 XXX</span>
-            <span class="phone">09XX-XXX-XXX</span>
-          </div>
-          <div class="contact-row">
-            <span class="name">📞 XXX</span>
-            <span class="phone">09XX-XXX-XXX</span>
-          </div>
-        </div>
-      </div></div>
+        <div class="zh">擦拭洗手台及使用廚房水龍頭，開關請保持冷水位置</div>
+        <div class="id">Setelah membersihkan wastafel dan menggunakan keran dapur, pastikan posisi keran kembali ke air dingin</div></div></div>
     </div>
   </div>
 
 </div>
 
 <footer>
-  外籍看護每日工作表 ／ Jadwal Pekerjaan Harian Pengasuh &nbsp;｜&nbsp; 2026
+  Mia 看護每日工作表 ／ Jadwal Pekerjaan Harian Mia &nbsp;｜&nbsp; 2026
 </footer>
 </div>
 
