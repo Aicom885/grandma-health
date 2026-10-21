@@ -73,6 +73,27 @@
   }
   .water-row input[type=number]:focus { border-color: var(--accent); }
   .water-label { font-size: 0.9rem; color: var(--sub); }
+  /* 血壓 */
+  .bp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+  .bp-field { display: flex; flex-direction: column; align-items: center; }
+  .bp-field input[type=number] {
+    width: 100%; border: 2px solid var(--border); border-radius: 10px; text-align: center;
+    padding: 10px 4px; font-size: 1.3rem; font-weight: 700; font-family: inherit;
+    color: var(--text); background: white; outline: none;
+  }
+  .bp-field input[type=number]:focus { border-color: var(--accent); }
+  .bp-name { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .bp-name-id { font-size: 0.72rem; color: var(--id-text); font-style: italic; margin-bottom: 5px; }
+  .bp-unit { font-size: 0.72rem; color: var(--sub); margin-top: 3px; }
+  .bp-status {
+    display: none; margin-top: 10px; border-radius: 10px; padding: 9px 12px;
+    font-size: 0.88rem; font-weight: 600; text-align: center; line-height: 1.5;
+  }
+  .bp-status .sid { display: block; font-size: 0.78rem; font-weight: 500; font-style: italic; }
+  .bp-ok   { background: #e8f5ed; color: #2a5c3f; }
+  .bp-warn { background: #fff4d6; color: #7a5c00; }
+  .bp-high { background: #fde4df; color: #a3301e; }
+  .bp-low  { background: #e3eefc; color: #1f4f8a; }
   .note-area {
     width: 100%; border: 2px solid var(--border); border-radius: 10px;
     padding: 10px 12px; font-size: 0.95rem; font-family: inherit; color: var(--text);
@@ -259,6 +280,37 @@
   </div>
 </div>
 
+<!-- 7. 血壓 -->
+<div class="card">
+  <div class="card-header">
+    <div class="label-zh">7️⃣ 血壓</div>
+    <div class="label-id">Tekanan Darah</div>
+  </div>
+  <div class="card-body">
+    <div class="bp-grid">
+      <div class="bp-field">
+        <div class="bp-name">收縮壓(高)</div>
+        <div class="bp-name-id">Sistolik (atas)</div>
+        <input type="number" id="bpSys" inputmode="numeric" placeholder="120" min="50" max="260" oninput="checkBP()">
+        <div class="bp-unit">mmHg</div>
+      </div>
+      <div class="bp-field">
+        <div class="bp-name">舒張壓(低)</div>
+        <div class="bp-name-id">Diastolik (bawah)</div>
+        <input type="number" id="bpDia" inputmode="numeric" placeholder="80" min="30" max="160" oninput="checkBP()">
+        <div class="bp-unit">mmHg</div>
+      </div>
+      <div class="bp-field">
+        <div class="bp-name">心跳</div>
+        <div class="bp-name-id">Denyut nadi</div>
+        <input type="number" id="bpPulse" inputmode="numeric" placeholder="70" min="30" max="200" oninput="checkBP()">
+        <div class="bp-unit">次/分 · bpm</div>
+      </div>
+    </div>
+    <div class="bp-status" id="bpStatus"></div>
+  </div>
+</div>
+
 <!-- 備註 -->
 <div class="card">
   <div class="card-header">
@@ -311,6 +363,29 @@ function checkPoopAlert() {
     (allNoPoop && selections.poop === '沒有') ? 'block' : 'none';
 }
 
+function checkBP() {
+  const sys = parseInt(document.getElementById('bpSys').value, 10);
+  const dia = parseInt(document.getElementById('bpDia').value, 10);
+  const box = document.getElementById('bpStatus');
+  if (!sys || !dia) { box.style.display = 'none'; return; }
+  let cls, zh, id;
+  if (sys >= 180 || dia >= 110) {
+    cls = 'bp-high'; zh = '🚨 血壓非常高！休息 5 分鐘後再量一次，仍偏高請立刻通知家人';
+    id = 'Tekanan darah sangat tinggi! Istirahat 5 menit lalu ukur lagi, jika masih tinggi segera hubungi keluarga';
+  } else if (sys < 90 || dia < 60) {
+    cls = 'bp-low'; zh = '⚠️ 血壓偏低，注意是否頭暈、無力，請通知家人';
+    id = 'Tekanan darah rendah, perhatikan pusing/lemas, tolong beri tahu keluarga';
+  } else if (sys >= 140 || dia >= 90) {
+    cls = 'bp-warn'; zh = '⚠️ 血壓偏高，請讓阿嬤休息後再量一次';
+    id = 'Tekanan darah agak tinggi, biarkan Nenek istirahat lalu ukur lagi';
+  } else {
+    cls = 'bp-ok'; zh = '👍 血壓正常'; id = 'Tekanan darah normal';
+  }
+  box.className = 'bp-status ' + cls;
+  box.innerHTML = zh + '<span class="sid">' + id + '</span>';
+  box.style.display = 'block';
+}
+
 function loadRecords() {
   try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
 }
@@ -318,6 +393,15 @@ function loadRecords() {
 async function saveRecord() {
   const date = document.getElementById('dateInput').value;
   if (!date) { showToast('請先選擇日期 / Pilih tanggal dulu'); return; }
+
+  const bpSys = document.getElementById('bpSys').value;
+  const bpDia = document.getElementById('bpDia').value;
+  if ((bpSys && !bpDia) || (!bpSys && bpDia)) {
+    showToast('高壓、低壓都要填 / Isi atas & bawah'); return;
+  }
+  if (bpSys && bpDia && Number(bpSys) <= Number(bpDia)) {
+    showToast('高壓應大於低壓，請檢查 / Atas harus > bawah'); return;
+  }
 
   const record = {
     date: date,
@@ -328,6 +412,9 @@ async function saveRecord() {
     spirit: selections.spirit,
     water: document.getElementById('water').value,
     notes: document.getElementById('notes').value.trim(),
+    bpSys: bpSys,
+    bpDia: bpDia,
+    bpPulse: document.getElementById('bpPulse').value,
     savedAt: new Date().toLocaleString('zh-TW')
   };
 
@@ -352,6 +439,9 @@ async function saveRecord() {
     + '&water='   + encodeURIComponent(record.water)
     + '&notes='   + encodeURIComponent(record.notes)
     + '&savedAt=' + encodeURIComponent(record.savedAt)
+    + '&bpSys='   + encodeURIComponent(record.bpSys)
+    + '&bpDia='   + encodeURIComponent(record.bpDia)
+    + '&bpPulse=' + encodeURIComponent(record.bpPulse)
     + '&t=' + Date.now();
 
   var img = new Image();
@@ -399,6 +489,8 @@ function renderHistory() {
       r.meds   ? '用藥：' + r.meds   : '',
       r.spirit ? '精神：' + r.spirit : '',
       r.water  ? '喝水：' + r.water + 'ml' : '',
+      (r.bpSys && r.bpDia) ? '血壓：' + r.bpSys + '/' + r.bpDia : '',
+      r.bpPulse ? '心跳：' + r.bpPulse : '',
     ].filter(Boolean);
     const noteHtml = r.notes ? '<div class="hist-note">📌 ' + r.notes + '</div>' : '';
     const warn = r.poop === '沒有' ? ' ⚠️' : '';
@@ -425,12 +517,13 @@ function exportCSV() {
   const records = loadRecords();
   const dates = Object.keys(records).sort();
   if (!dates.length) { showToast('尚無資料可匯出'); return; }
-  const header = '日期,排便,大便性狀,走路,用藥,精神,喝水(ml),備註,儲存時間\n';
+  const header = '日期,排便,大便性狀,走路,用藥,精神,喝水(ml),備註,儲存時間,收縮壓,舒張壓,心跳\n';
   const rows = dates.map(function(d) {
     const r = records[d];
     return d + ',' + (r.poop||'') + ',' + (r.stool||'') + ',' + (r.walk||'') + ',' +
       (r.meds||'') + ',' + (r.spirit||'') + ',' + (r.water||'') + ',"' +
-      (r.notes||'').replace(/"/g,'""') + '",' + (r.savedAt||'');
+      (r.notes||'').replace(/"/g,'""') + '",' + (r.savedAt||'') + ',' +
+      (r.bpSys||'') + ',' + (r.bpDia||'') + ',' + (r.bpPulse||'');
   });
   const csv = '\uFEFF' + header + rows.join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -457,6 +550,10 @@ document.getElementById('dateInput').value = yyyy + '-' + mm + '-' + dd;
   const r = records[todayKey];
   document.getElementById('water').value = r.water || '';
   document.getElementById('notes').value = r.notes || '';
+  document.getElementById('bpSys').value = r.bpSys || '';
+  document.getElementById('bpDia').value = r.bpDia || '';
+  document.getElementById('bpPulse').value = r.bpPulse || '';
+  checkBP();
   const clsMap = {
     poop:   { '有':'selected-green', '沒有':'selected-red' },
     stool:  { '硬':'selected-red', '正常':'selected-green', '軟':'selected' },
