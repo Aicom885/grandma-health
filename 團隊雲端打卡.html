@@ -96,7 +96,7 @@ header p{font-size:11px;color:var(--muted);margin-top:3px;}
 .dur{font-family:'Share Tech Mono',monospace;font-size:22px;color:var(--gold);}
 .lunch-note{font-size:11px;color:var(--muted);}
 
-.bottom-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 16px 0;}
+.bottom-btns{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 16px 0;}
 .bottom-btn{padding:12px;border-radius:var(--radius-sm);background:var(--navy2);border:1px solid var(--border);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
 .toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%) translateY(12px);background:var(--accent);color:var(--navy);padding:9px 20px;border-radius:20px;font-size:13px;font-weight:600;opacity:0;transition:all 0.3s;pointer-events:none;z-index:99;white-space:nowrap;}
@@ -126,7 +126,7 @@ header p{font-size:11px;color:var(--muted);margin-top:3px;}
 
 <header>
   <h1>📋 團隊雲端打卡</h1>
-  <p>即時同步・資料保存30天</p>
+  <p>即時同步・資料永久保存</p>
 </header>
 
 <!-- 雲端連線狀態 -->
@@ -170,7 +170,6 @@ header p{font-size:11px;color:var(--muted);margin-top:3px;}
 
 <div class="bottom-btns">
   <button class="bottom-btn" onclick="exportCSV()">📁 匯出 CSV</button>
-  <button class="bottom-btn" onclick="showClearModal()">🗑 清除記錄</button>
 </div>
 
 <!-- 載入遮罩 -->
@@ -178,18 +177,6 @@ header p{font-size:11px;color:var(--muted);margin-top:3px;}
   <div class="loading-box">
     <div class="spinner"></div>
     <p id="loadingText">取得 GPS 位置中…</p>
-  </div>
-</div>
-
-<!-- 確認清除 Modal -->
-<div class="modal-overlay" id="clearModal" onclick="hideClearModal(event)">
-  <div class="modal">
-    <h2>確定清除記錄？</h2>
-    <p>所有人員的打卡記錄將被永久刪除，無法復原。</p>
-    <div class="modal-btns">
-      <button class="modal-btn cancel" onclick="hideClearModal()">取消</button>
-      <button class="modal-btn danger" onclick="confirmClear()">確定清除</button>
-    </div>
   </div>
 </div>
 
@@ -218,7 +205,6 @@ const COL = 'punch_records';
 ══════════════════════════════════ */
 const USERS   = ['呂憲政','陳莉莉','呂彥霈','呂彥霖'];
 const AVATARS = {'呂憲政':'憲','陳莉莉':'莉','呂彥霈':'霈','呂彥霖':'霖'};
-const KEEP_DAYS = 30;
 
 let selectedUser = null;
 let currentPos   = null;
@@ -285,10 +271,8 @@ function setConn(state,msg){
 }
 
 function startListen(){
-  const cutoff = new Date(Date.now() - KEEP_DAYS*24*3600*1000);
   if(unsubscribe) unsubscribe();
   unsubscribe = db.collection(COL)
-    .where('ts','>=', cutoff)
     .orderBy('ts','desc')
     .onSnapshot(snap=>{
       setConn('ok','雲端已連線・即時同步');
@@ -467,38 +451,8 @@ function cardHtml(r){
     <div class="record-row">
       <span class="record-type">打卡</span>
       <span class="record-time">${r.time}</span>
-      <button class="record-del" onclick="deleteRecord('${r.id}')" aria-label="刪除">✕</button>
     </div>${mapRow}
   </div>`;
-}
-
-function deleteRecord(id){
-  db.collection(COL).doc(id).delete()
-    .then(()=>showToast('已刪除一筆記錄'))
-    .catch(()=>showToast('❌ 刪除失敗'));
-}
-
-/* ══════════════════════════════════
-   清除
-══════════════════════════════════ */
-function showClearModal(){
-  if(!allRecords.length){ showToast('目前沒有記錄'); return; }
-  document.getElementById('clearModal').classList.add('open');
-}
-function hideClearModal(e){
-  if(!e||e.target===document.getElementById('clearModal'))
-    document.getElementById('clearModal').classList.remove('open');
-}
-async function confirmClear(){
-  document.getElementById('clearModal').classList.remove('open');
-  document.getElementById('loadingText').textContent='清除中…';
-  document.getElementById('loadingOverlay').classList.add('open');
-  const snap = await db.collection(COL).get();
-  const batch = db.batch();
-  snap.docs.forEach(d=>batch.delete(d.ref));
-  await batch.commit();
-  document.getElementById('loadingOverlay').classList.remove('open');
-  showToast('已清除所有記錄');
 }
 
 /* ══════════════════════════════════
