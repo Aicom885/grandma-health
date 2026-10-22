@@ -26,6 +26,8 @@
     }
   }
   body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:env(safe-area-inset-bottom);}
+  html,body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;-webkit-tap-highlight-color:transparent;}
+  .status-badge.holiday{background:#8A8A8E;color:#fff;}
 
   header{background:var(--card);border-bottom:0.5px solid var(--border);padding:16px 20px 14px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10;}
   header h1{font-size:17px;font-weight:700;letter-spacing:0.03em;}
@@ -104,8 +106,8 @@
   }
   .no-gps-note{font-size:22px;color:var(--muted);padding:7px 12px 10px;border-top:0.5px solid var(--border);}
 
-  .pair-dur{font-size:13px;color:var(--muted);padding:5px 12px 8px;display:flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;flex-wrap:nowrap;}
-  .dur{font-family:'Share Tech Mono',monospace;font-size:14px;color:var(--text);font-weight:600;}
+  .pair-dur{font-size:22px;color:var(--muted);padding:3px 12px 8px;display:flex;align-items:center;gap:5px;}
+  .dur{font-family:'Share Tech Mono',monospace;font-size:24px;color:var(--text);}
 
   .clear-btn{display:block;width:calc(100% - 32px);margin:8px 16px 28px;padding:13px;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
@@ -208,7 +210,10 @@ function tickClock(){
   const now=new Date();
   document.getElementById('clock').textContent=fmtTime(now);
   document.getElementById('dateStr').textContent=fmtDate(now);
+  const wk=isWeekend(now);
+  if(wk!==lastWeekend){lastWeekend=wk;if(typeof records!=='undefined')updateStatus();}
 }
+let lastWeekend=null;
 tickClock();setInterval(tickClock,1000);
 
 /* ── GPS ── */
@@ -248,10 +253,17 @@ function getStatus(){
   if(!records.length)return'idle';
   return records[records.length-1].type==='in'?'working':'idle';
 }
+function isWeekend(d){const w=(d||new Date()).getDay();return w===0||w===6;}
 function updateStatus(){
   const s=getStatus();
   const badge=document.getElementById('statusBadge');
   const txt=document.getElementById('statusText');
+  if(isWeekend()){
+    document.getElementById('btnIn').disabled=true;
+    document.getElementById('btnOut').disabled=true;
+    badge.className='status-badge holiday';txt.textContent='今日為假日';
+    return;
+  }
   document.getElementById('btnIn').disabled=(s==='working');
   document.getElementById('btnOut').disabled=(s!=='working');
   if(s==='working'){badge.className='status-badge working';txt.textContent='上班中';}
@@ -260,6 +272,7 @@ function updateStatus(){
 function saveRecords(){localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
 
 function punch(type){
+  if(isWeekend()){showToast('📅 週六、日為假日，不需打卡');return;}
   if(type==='in'&&getStatus()==='working'){showToast('⚠️ 已在上班中');return;}
   if(type==='out'&&getStatus()!=='working'){showToast('⚠️ 尚未上班打卡');return;}
 
@@ -344,7 +357,7 @@ function renderRecords(){
           const totalMs=nxt.ts-r.ts;
           const actualMs=Math.max(0,totalMs-3600000);
           const lunchNote=totalMs>=3600000?'（已扣午休1小時）':'';
-          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted);flex-shrink:0">${lunchNote}</span></div>`;
+          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted)">${lunchNote}</span></div>`;
           i+=2;continue;
         }
       }else{
