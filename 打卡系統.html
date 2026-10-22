@@ -106,8 +106,9 @@
   }
   .no-gps-note{font-size:22px;color:var(--muted);padding:7px 12px 10px;border-top:0.5px solid var(--border);}
 
-  .pair-dur{font-size:22px;color:var(--muted);padding:3px 12px 8px;display:flex;align-items:center;gap:5px;}
-  .dur{font-family:'Share Tech Mono',monospace;font-size:24px;color:var(--text);}
+  .pair-dur{font-size:clamp(15px,4.6vw,20px);color:var(--muted);padding:3px 12px 8px;display:flex;align-items:baseline;gap:6px;white-space:nowrap;flex-wrap:nowrap;overflow:hidden;}
+  .dur{font-family:'Share Tech Mono',monospace;font-size:clamp(17px,5.2vw,22px);color:var(--text);white-space:nowrap;}
+  .lunch-note{font-size:11px;color:var(--muted);white-space:nowrap;}
 
   .clear-btn{display:block;width:calc(100% - 32px);margin:8px 16px 28px;padding:13px;border:0.5px solid var(--border);background:var(--card);border-radius:var(--radius-sm);font-family:'Noto Sans TC',sans-serif;font-size:13px;color:var(--muted);cursor:pointer;-webkit-tap-highlight-color:transparent;}
 
@@ -210,10 +211,14 @@ function tickClock(){
   const now=new Date();
   document.getElementById('clock').textContent=fmtTime(now);
   document.getElementById('dateStr').textContent=fmtDate(now);
-  const wk=isWeekend(now);
-  if(wk!==lastWeekend){lastWeekend=wk;if(typeof records!=='undefined')updateStatus();}
+  const dk=fmtDateKey(now);
+  if(dk!==lastDayKey){
+    const newYear=lastDayKey&&lastDayKey.slice(0,4)!==dk.slice(0,4);
+    lastDayKey=dk;
+    if(typeof records!=='undefined'){updateStatus();if(newYear)loadCalendar();}
+  }
 }
-let lastWeekend=null;
+let lastDayKey=null;
 tickClock();setInterval(tickClock,1000);
 
 /* ── GPS ── */
@@ -253,15 +258,46 @@ function getStatus(){
   if(!records.length)return'idle';
   return records[records.length-1].type==='in'?'working':'idle';
 }
-function isWeekend(d){const w=(d||new Date()).getDay();return w===0||w===6;}
+/* ── 台灣行事曆（國定假日 / 補假 / 補班）── */
+// 資料來源：https://github.com/ruyut/TaiwanCalendar
+var calendar={}; // { '20261026': {off:true, name:'補假'} }
+function calKey(d){return d.getFullYear()+pad(d.getMonth()+1)+pad(d.getDate());}
+function applyCalendar(list){
+  calendar={};
+  list.forEach(x=>{calendar[x.date]={off:!!x.isHoliday,name:x.description||''};});
+}
+function loadCalendar(){
+  const year=new Date().getFullYear();
+  const cacheKey='tw_calendar_'+year;
+  try{const c=JSON.parse(localStorage.getItem(cacheKey)||'null');if(Array.isArray(c)){applyCalendar(c);updateStatus();}}catch(e){}
+  fetch('https://cdn.jsdelivr.net/gh/ruyut/TaiwanCalendar/data/'+year+'.json',{cache:'no-cache'})
+    .then(r=>{if(!r.ok)throw new Error(r.status);return r.json();})
+    .then(list=>{
+      if(!Array.isArray(list)||!list.length)return;
+      applyCalendar(list);
+      try{localStorage.setItem(cacheKey,JSON.stringify(list));}catch(e){}
+      updateStatus();
+    })
+    .catch(()=>{/* 抓不到就用快取或週六日規則 */});
+}
+// 回傳 null = 上班日；否則回傳假日名稱
+function offDayName(d){
+  d=d||new Date();
+  const c=(calendar||{})[calKey(d)];
+  if(c)return c.off?(c.name||'假日'):null;
+  const w=d.getDay();
+  return (w===0||w===6)?'假日':null;
+}
 function updateStatus(){
   const s=getStatus();
   const badge=document.getElementById('statusBadge');
   const txt=document.getElementById('statusText');
-  if(isWeekend()){
+  const off=offDayName();
+  if(off){
     document.getElementById('btnIn').disabled=true;
     document.getElementById('btnOut').disabled=true;
-    badge.className='status-badge holiday';txt.textContent='今日為假日';
+    badge.className='status-badge holiday';
+    txt.textContent=off==='假日'?'今日為假日':'今日放假・'+off;
     return;
   }
   document.getElementById('btnIn').disabled=(s==='working');
@@ -272,7 +308,8 @@ function updateStatus(){
 function saveRecords(){localStorage.setItem(STORAGE_KEY,JSON.stringify(records));}
 
 function punch(type){
-  if(isWeekend()){showToast('📅 週六、日為假日，不需打卡');return;}
+  const off=offDayName();
+  if(off){showToast('📅 今日放假（'+off+'），不需打卡');return;}
   if(type==='in'&&getStatus()==='working'){showToast('⚠️ 已在上班中');return;}
   if(type==='out'&&getStatus()!=='working'){showToast('⚠️ 尚未上班打卡');return;}
 
@@ -357,7 +394,7 @@ function renderRecords(){
           const totalMs=nxt.ts-r.ts;
           const actualMs=Math.max(0,totalMs-3600000);
           const lunchNote=totalMs>=3600000?'（已扣午休1小時）':'';
-          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span style="font-size:11px;color:var(--muted)">${lunchNote}</span></div>`;
+          html+=`<div class="pair-dur">⏱ 實際工時 <span class="dur">${durText(actualMs)}</span><span class="lunch-note">${lunchNote}</span></div>`;
           i+=2;continue;
         }
       }else{
@@ -418,7 +455,7 @@ function showToast(msg){
   toastTimer=setTimeout(()=>t.classList.remove('show'),2600);
 }
 
-updateStatus();renderRecords();
+updateStatus();renderRecords();loadCalendar();
 </script>
 </body>
 </html>
